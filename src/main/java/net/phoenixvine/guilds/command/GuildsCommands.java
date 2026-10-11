@@ -46,6 +46,22 @@ public class GuildsCommands {
                                             EntityArgument.getPlayer(ctx, "player").getName().getString());
                                     return 1;
                                 })))
+                .then(Commands.literal("accept")
+                        .then(Commands.argument("guild", StringArgumentType.word())
+                                .executes(ctx -> {
+                                    handleInviteAccept(ctx.getSource().getPlayerOrException(),
+                                            get(ctx.getSource().getPlayerOrException()),
+                                            StringArgumentType.getString(ctx, "guild"));
+                                    return 1;
+                                })))
+                .then(Commands.literal("decline")
+                        .then(Commands.argument("guild", StringArgumentType.word())
+                                .executes(ctx -> {
+                                    handleInviteDecline(ctx.getSource().getPlayerOrException(),
+                                            get(ctx.getSource().getPlayerOrException()),
+                                            StringArgumentType.getString(ctx, "guild"));
+                                    return 1;
+                                })))
                 .then(Commands.literal("remove")
                         .then(Commands.argument("player", EntityArgument.player())
                                 .executes(ctx -> {

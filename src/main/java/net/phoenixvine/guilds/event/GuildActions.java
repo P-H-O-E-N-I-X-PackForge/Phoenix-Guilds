@@ -1,7 +1,10 @@
 package net.phoenixvine.guilds.event;
 
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -52,34 +55,79 @@ public class GuildActions {
 
     public static void handleInvite(ServerPlayer player, GuildManager mgr, String targetName) {
         GuildActions.runWithGuild(player, mgr, (guild) -> {
-            if (!guild.hasRank(player.getUUID(), GuildRank.OFFICER)) {
-                send(player, "§cOfficers and above can invite players.");
-                return;
-            }
             ServerPlayer target = Objects.requireNonNull(player.getServer()).getPlayerList()
                     .getPlayerByName(targetName);
             if (target == null) {
                 send(player, "§cPlayer '§f" + targetName + "§c' is not online.");
                 return;
             }
-            if (mgr.isInGuild(target.getUUID())) {
-                send(player, "§c" + targetName + " is already in a Guild.");
-                return;
+
+            String result = mgr.sendInvite(guild.getId(), player.getUUID(), target.getUUID());
+            switch (result) {
+                case "sent" -> {
+                    send(player, "§aInvitation sent to §f" + targetName + "§a.");
+                    MutableComponent msg = Component
+                            .literal("§aYou have been invited to join Guild §f" + guild.getName() + "§a. ")
+                            .append(Component.literal("§e[Accept]")
+                                    .withStyle(s -> s
+                                            .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
+                                                    "/guilds accept " + guild.getName()))
+                                            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                                                    Component.literal("Click to accept")))))
+                            .append(" ")
+                            .append(Component.literal("§c[Decline]")
+                                    .withStyle(s -> s
+                                            .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
+                                                    "/guilds decline " + guild.getName()))
+                                            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                                                    Component.literal("Click to decline")))));
+                    target.sendSystemMessage(msg);
+                }
+                case "no_permission" -> send(player, "§cOfficers and above can invite players.");
+                case "already_in_guild" -> send(player, "§c" + targetName + " is already in a Guild.");
+                case "guild_full" -> send(player, "§cYour Guild is full (§f" + Guild.MAX_MEMBERS + "§c members max).");
+                case "already_invited" -> send(player, "§c" + targetName + " has already been invited.");
+                default -> send(player, "§cCould not send invite: " + result);
             }
-            if (guild.isFull()) {
-                send(player, "§cYour Guild is full (§f" + Guild.MAX_MEMBERS + "§c members max).");
-                return;
-            }
-            mgr.addMember(guild.getId(), target.getUUID());
-            guild.addLog(player.getName().getString() + " invited " + targetName + ".");
-            send(player, "§aAdded §f" + targetName + " §ato §f" + guild.getName() + "§a.");
-            target.sendSystemMessage(Component.literal(
-                    "§aYou were added to guild §f" + guild.getName() + " §aby §f" + player.getName().getString() +
-                            "§a."));
-            migrateGTCEuOwnership(target.getUUID(), guild.getId());
-            syncToGuild(guild, player.getServer(), mgr);
-            broadcastAllGuildList(player.getServer(), mgr);
         });
+    }
+
+    public static void handleInviteAccept(ServerPlayer player, GuildManager mgr, String guildName) {
+        String result = mgr.acceptInvite(player.getUUID(), guildName);
+        switch (result) {
+            case "accepted" -> {
+                Optional<Guild> guildOpt = mgr.getGuildByName(guildName);
+                if (guildOpt.isPresent()) {
+                    Guild guild = guildOpt.get();
+                    guild.addLog(player.getName().getString() + " joined the Guild.");
+                    send(player, "§aYou have joined §f" + guild.getName() + "§a.");
+                    migrateGTCEuOwnership(player.getUUID(), guild.getId());
+                    syncToGuild(guild, player.getServer(), mgr);
+                    broadcastAllGuildList(player.getServer(), mgr);
+                }
+            }
+            case "already_in_guild" -> send(player, "§cYou are already in a Guild.");
+            case "guild_not_found" -> send(player, "§cGuild '§f" + guildName + "§c' not found.");
+            case "no_invite" -> send(player, "§cYou have no pending invitation from §f" + guildName + "§c.");
+            case "guild_full" -> send(player, "§cThat Guild is full.");
+            default -> send(player, "§cCould not accept invite: " + result);
+        }
+    }
+
+    public static void handleInviteDecline(ServerPlayer player, GuildManager mgr, String guildName) {
+        String result = mgr.declineInvite(player.getUUID(), guildName);
+        switch (result) {
+            case "declined" -> {
+                send(player, "§7Declined invitation from §f" + guildName + "§7.");
+                mgr.getGuildByName(guildName).ifPresent(guild -> {
+                    guild.addLog(player.getName().getString() + " declined the invitation.");
+                    syncToGuild(guild, player.getServer(), mgr);
+                });
+            }
+            case "guild_not_found" -> send(player, "§cGuild '§f" + guildName + "§c' not found.");
+            case "no_invite" -> send(player, "§cYou have no pending invitation from §f" + guildName + "§c.");
+            default -> send(player, "§cCould not decline invite: " + result);
+        }
     }
 
     public static void handleHome(ServerPlayer player, GuildManager mgr) {

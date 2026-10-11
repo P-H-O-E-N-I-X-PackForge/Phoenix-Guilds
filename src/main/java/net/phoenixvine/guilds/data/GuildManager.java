@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 public class GuildManager extends SavedData {
@@ -23,6 +24,7 @@ public class GuildManager extends SavedData {
 
     private final Map<UUID, Guild> guilds = new LinkedHashMap<>();
     private final Map<UUID, UUID> memberIndex = new LinkedHashMap<>();
+    private final Map<UUID, Set<UUID>> invitations = new LinkedHashMap<>();
 
     public static GuildManager get(ServerLevel overworld) {
         return overworld.getDataStorage().computeIfAbsent(
@@ -48,6 +50,21 @@ public class GuildManager extends SavedData {
                         list.getCompound(i), e);
             }
         }
+
+        if (tag.contains("invitations", Tag.TAG_LIST)) {
+            ListTag invList = tag.getList("invitations", Tag.TAG_COMPOUND);
+            for (int i = 0; i < invList.size(); i++) {
+                CompoundTag invEntry = invList.getCompound(i);
+                UUID playerUuid = invEntry.getUUID("player");
+                ListTag guildList = invEntry.getList("guilds", Tag.TAG_INT_ARRAY);
+                Set<UUID> guildUuids = new java.util.HashSet<>();
+                for (int j = 0; j < guildList.size(); j++) {
+                    guildUuids.add(net.minecraft.nbt.NbtUtils.loadUUID(guildList.get(j)));
+                }
+                mgr.invitations.put(playerUuid, guildUuids);
+            }
+        }
+
         return mgr;
     }
 
@@ -57,6 +74,21 @@ public class GuildManager extends SavedData {
         ListTag list = new ListTag();
         for (Guild g : guilds.values()) list.add(g.serialize());
         tag.put("guilds", list);
+
+        ListTag invList = new ListTag();
+        for (Map.Entry<UUID, Set<UUID>> entry : invitations.entrySet()) {
+            if (entry.getValue().isEmpty()) continue;
+            CompoundTag invEntry = new CompoundTag();
+            invEntry.putUUID("player", entry.getKey());
+            ListTag guildList = new ListTag();
+            for (UUID guildUuid : entry.getValue()) {
+                guildList.add(net.minecraft.nbt.NbtUtils.createUUID(guildUuid));
+            }
+            invEntry.put("guilds", guildList);
+            invList.add(invEntry);
+        }
+        tag.put("invitations", invList);
+
         return tag;
     }
 
@@ -293,5 +325,52 @@ public class GuildManager extends SavedData {
         target.addLog("Alliance with " + breaker.getName() + " was broken.");
         setDirty();
         return "broken";
+    }
+
+    public String sendInvite(UUID guildId, UUID inviterUuid, UUID targetUuid) {
+        Guild guild = guilds.get(guildId);
+        if (guild == null) return "not_in_guild";
+        if (!guild.hasRank(inviterUuid, GuildRank.OFFICER)) return "no_permission";
+        if (isInGuild(targetUuid)) return "already_in_guild";
+        if (guild.isFull()) return "guild_full";
+
+        Set<UUID> playerInvites = invitations.computeIfAbsent(targetUuid, k -> new java.util.HashSet<>());
+        if (playerInvites.contains(guildId)) return "already_invited";
+
+        playerInvites.add(guildId);
+        setDirty();
+        return "sent";
+    }
+
+    public String acceptInvite(UUID playerUuid, String guildName) {
+        if (isInGuild(playerUuid)) return "already_in_guild";
+        Optional<Guild> guildOpt = getGuildByName(guildName);
+        if (guildOpt.isEmpty()) return "guild_not_found";
+        Guild guild = guildOpt.get();
+
+        Set<UUID> playerInvites = invitations.get(playerUuid);
+        if (playerInvites == null || !playerInvites.contains(guild.getId())) return "no_invite";
+
+        if (guild.isFull()) return "guild_full";
+
+        addMember(guild.getId(), playerUuid);
+        playerInvites.remove(guild.getId());
+        if (playerInvites.isEmpty()) invitations.remove(playerUuid);
+        setDirty();
+        return "accepted";
+    }
+
+    public String declineInvite(UUID playerUuid, String guildName) {
+        Optional<Guild> guildOpt = getGuildByName(guildName);
+        if (guildOpt.isEmpty()) return "guild_not_found";
+        Guild guild = guildOpt.get();
+
+        Set<UUID> playerInvites = invitations.get(playerUuid);
+        if (playerInvites == null || !playerInvites.contains(guild.getId())) return "no_invite";
+
+        playerInvites.remove(guild.getId());
+        if (playerInvites.isEmpty()) invitations.remove(playerUuid);
+        setDirty();
+        return "declined";
     }
 }

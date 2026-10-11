@@ -20,6 +20,11 @@ sourceSets {
     main.resources {
         srcDir 'src/generated/resources'
     }
+    // Code that only exists for GregTech 8.x. Compiled against GT 8 and shipped in the same jar; it is only loaded
+    // when GT 8 is the installed version, so players on 7.x never touch it.
+    gtm8 {
+        java.srcDir 'src/gtm8/java'
+    }
 }
 
 repositories {
@@ -34,6 +39,7 @@ repositories {
         url = 'https://maven.gtceu.com'
         content {
             includeGroup 'com.gregtechceu.gtceu'
+            includeGroup 'brachy.modularui'
         }
     }
     maven { // Registrate
@@ -129,9 +135,16 @@ jar {
     ])
 }
 
+configurations {
+    gtm8CompileOnly.extendsFrom(compileOnly, implementation)
+}
+obfuscation.createRemappingConfiguration(configurations.gtm8CompileOnly)
+sourceSets.gtm8.compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+
 apply from: "$rootDir/gradle/scripts/spotless.gradle"
 
 dependencies {
+    modGtm8CompileOnly("com.gregtechceu.gtceu:gtceu-${minecraft_version}:${gtceu8_version}:slim") { transitive = false }
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -140,14 +153,21 @@ dependencies {
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
-    modImplementation("dev.toma.configuration:configuration-forge-${minecraft_version}:${configuration_version}")
+    modImplementation("curse.maven:configuration-444699:5840405") // Configuration 3.1.0 (GregTech 8 needs 3.1+)
 
     modCompileOnly("com.gregtechceu.gtceu:gtceu-${minecraft_version}:${gtceu_version}:slim") { transitive = false }
     modCompileOnly("com.lowdragmc.ldlib:ldlib-forge-${minecraft_version}:${ldlib_version}") { transitive = false }
     modCompileOnly("com.tterrag.registrate:Registrate:${registrate_version}")
 
 
-    modRuntimeOnly("com.gregtechceu.gtceu:gtceu-${minecraft_version}:${gtceu_version}:slim") { transitive = false }
+    // The GT 8 snapshot jar-in-jars these (its slim jar leaves them out), so a dev run on it has to provide them.
+    if (project.findProperty('gtm') == '8') {
+        modRuntimeOnly("brachy.modularui:modularui-mc1.20.1:3.3.0-SNAPSHOT") { transitive = false }
+        modRuntimeOnly("io.github.llamalad7:mixinextras-forge:0.5.3")
+        modRuntimeOnly("top.theillusivec4.curios:curios-forge:5.9.1+1.20.1")
+    }
+    // Which GregTech the dev client/server runs: 7.x by default, GT 8 snapshot with -Pgtm=8, or any exact version with -Pgtm=<version> (e.g. -Pgtm=8.0.0).
+    modRuntimeOnly("com.gregtechceu.gtceu:gtceu-${minecraft_version}:${project.findProperty('gtm') == '8' ? gtceu8_version : (project.findProperty('gtm') ?: gtceu_version)}:slim") { transitive = false }
     modRuntimeOnly("com.lowdragmc.ldlib:ldlib-forge-${minecraft_version}:${ldlib_version}") { transitive = false }
     modRuntimeOnly("com.tterrag.registrate:Registrate:${registrate_version}")
 
@@ -191,7 +211,10 @@ tasks.named('processResources', ProcessResources).configure {
     }
 }
 
-tasks.named('jar', Jar).configure { finalizedBy 'reobfJar' }
+tasks.named('jar', Jar).configure {
+    from sourceSets.gtm8.output
+    finalizedBy 'reobfJar'
+}
 tasks.withType(JavaCompile).configureEach {
     options.encoding = "UTF-8"
     options.release.set(17)
@@ -238,6 +261,20 @@ publishing {
                 username = project.findProperty("repsyUsername") ?: System.getenv("REPSY_USERNAME")
                 password = project.findProperty("repsyPassword") ?: System.getenv("REPSY_PASSWORD")
             }
+        }
+    }
+}
+
+// One-click dev runs against newer GregTech, visible in IntelliJ's Gradle tool window under "mod development".
+// They re-run the normal runClient / runServer with the -Pgtm switch set (see the modRuntimeOnly GregTech line).
+[['Gtm8', '8', 'the GregTech 8 development snapshot'], ['Gtm8Release', '8.0.0', 'the GregTech 8.0.0 release']].each { suffix, version, label ->
+    ['Client', 'Server'].each { side ->
+        tasks.register("run${side}${suffix}", GradleBuild) {
+            group = 'mod development'
+            description = "Runs the dev ${side.toLowerCase()} with ${label} instead of GregTech ${gtceu_version}."
+            dir = projectDir
+            tasks = ["run${side}".toString()]
+            startParameter.projectProperties = [gtm: version]
         }
     }
 }
