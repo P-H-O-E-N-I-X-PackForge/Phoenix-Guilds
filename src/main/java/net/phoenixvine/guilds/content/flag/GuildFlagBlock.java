@@ -2,10 +2,12 @@ package net.phoenixvine.guilds.content.flag;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
@@ -29,7 +31,6 @@ import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.registries.ForgeRegistries;
 import net.phoenixvine.guilds.GuildAPI;
 import net.phoenixvine.guilds.client.ClientAccess;
 import net.phoenixvine.guilds.data.Guild;
@@ -113,38 +114,43 @@ public class GuildFlagBlock extends Block implements EntityBlock {
     }
 
     @Override
-    public @NotNull InteractionResult use(@NotNull BlockState state, @NotNull Level level,
-                                          @NotNull BlockPos pos, @NotNull Player player, @NotNull InteractionHand hand,
-                                          @NotNull BlockHitResult hit) {
-        if (hand != InteractionHand.MAIN_HAND) return InteractionResult.PASS;
+    protected @NotNull ItemInteractionResult useItemOn(@NotNull ItemStack stack, @NotNull BlockState state, @NotNull Level level,
+                                                       @NotNull BlockPos pos, @NotNull Player player, @NotNull InteractionHand hand,
+                                                       @NotNull BlockHitResult hit) {
+        if (hand != InteractionHand.MAIN_HAND) return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
 
         BlockPos lowerPos = state.getValue(HALF) == DoubleBlockHalf.LOWER ? pos : pos.below();
         if (!(level.getBlockEntity(lowerPos) instanceof GuildFlagBlockEntity entity) || entity.getGuildId() == null) {
-            return InteractionResult.sidedSuccess(level.isClientSide());
+            return ItemInteractionResult.SUCCESS;
         }
 
-        ItemStack held = player.getItemInHand(hand);
-
-        if (!held.isEmpty() && held.is(this.asItem())) {
+        if (stack.is(this.asItem())) {
             if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
                 serverPlayer.displayClientMessage(
                         Component.literal("§cYou cannot put a flag on a flag! Flag-ception averted."), true);
             }
-            return InteractionResult.sidedSuccess(level.isClientSide());
-        }
-
-        if (held.isEmpty()) {
-            if (level.isClientSide()) {
-
-                ClientAccess.openFlagEditor(entity.getGuildId());
-            }
-            return InteractionResult.sidedSuccess(level.isClientSide());
+            return ItemInteractionResult.SUCCESS;
         }
 
         if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
-            applyHeldItemAsFlag(serverPlayer, entity.getGuildId(), held);
+            applyHeldItemAsFlag(serverPlayer, entity.getGuildId(), stack);
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return ItemInteractionResult.SUCCESS;
+    }
+
+    @Override
+    protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState state, @NotNull Level level,
+                                                        @NotNull BlockPos pos, @NotNull Player player,
+                                                        @NotNull BlockHitResult hit) {
+        BlockPos lowerPos = state.getValue(HALF) == DoubleBlockHalf.LOWER ? pos : pos.below();
+        if (!(level.getBlockEntity(lowerPos) instanceof GuildFlagBlockEntity entity) || entity.getGuildId() == null) {
+            return InteractionResult.SUCCESS;
+        }
+
+        if (level.isClientSide()) {
+            ClientAccess.openFlagEditor(entity.getGuildId());
+        }
+        return InteractionResult.SUCCESS;
     }
 
     private static void applyHeldItemAsFlag(ServerPlayer player, UUID guildId, ItemStack held) {
@@ -163,8 +169,8 @@ public class GuildFlagBlock extends Block implements EntityBlock {
         Item heldItem = held.getItem();
         String iconId = heldItem instanceof BlockItem blockItem &&
                 blockItem.getBlock() != Blocks.AIR ?
-                        "block:" + ForgeRegistries.BLOCKS.getKey(blockItem.getBlock()) :
-                        "item:" + ForgeRegistries.ITEMS.getKey(heldItem);
+                        "block:" + BuiltInRegistries.BLOCK.getKey(blockItem.getBlock()) :
+                        "item:" + BuiltInRegistries.ITEM.getKey(heldItem);
         GuildActions.handleSetFlag(player, mgr, guildId, false, iconId, null, guild.getFlagWidth(),
                 guild.getFlagHeight());
     }

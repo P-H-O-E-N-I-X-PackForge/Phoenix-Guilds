@@ -12,8 +12,10 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.util.Mth;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraft.util.StringUtil;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.phoenixvine.guilds.data.GuildAction;
 import net.phoenixvine.guilds.network.C2SGuildActionPacket;
 import net.phoenixvine.guilds.network.GuildNetwork;
@@ -167,7 +169,7 @@ public class WikiEditScreen extends Screen {
         String content = contentArea != null ? contentArea.getValue() : "";
         if (title.isEmpty()) return;
 
-        GuildNetwork.CHANNEL.sendToServer(
+        PacketDistributor.sendToServer(
                 new C2SGuildActionPacket(GuildAction.WIKI_SET, title + '.' + content));
         Minecraft.getInstance().setScreen(parent);
     }
@@ -316,7 +318,7 @@ public class WikiEditScreen extends Screen {
 
         @Override
         public boolean charTyped(char c, int mod) {
-            if (isFocused() && SharedConstants.isAllowedChatCharacter(c)) {
+            if (isFocused() && StringUtil.isAllowedChatCharacter(c)) {
                 tf.insertText(Character.toString(c));
                 return true;
             }

@@ -1,15 +1,26 @@
 package net.phoenixvine.guilds.network;
 
-import net.minecraft.network.FriendlyByteBuf;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.phoenixvine.guilds.PhoenixGuilds;
 
-public record S2CGuildStatusPacket(String message, boolean error) {
+public record S2CGuildStatusPacket(String message, boolean error) implements CustomPacketPayload {
 
-    public S2CGuildStatusPacket(FriendlyByteBuf buf) {
-        this(buf.readUtf(GuildNetworkLimits.LOG_MESSAGE_MAX), buf.readBoolean());
-    }
+    public static final Type<S2CGuildStatusPacket> TYPE = new Type<>(
+            ResourceLocation.fromNamespaceAndPath(PhoenixGuilds.MOD_ID, "s2c_guild_status")
+    );
 
-    public void encode(FriendlyByteBuf buf) {
-        buf.writeUtf(message, GuildNetworkLimits.LOG_MESSAGE_MAX);
-        buf.writeBoolean(error);
+    public static final StreamCodec<ByteBuf, S2CGuildStatusPacket> STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.stringUtf8(GuildNetworkLimits.LOG_MESSAGE_MAX), S2CGuildStatusPacket::message,
+            ByteBufCodecs.BOOL, S2CGuildStatusPacket::error,
+            S2CGuildStatusPacket::new
+    );
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

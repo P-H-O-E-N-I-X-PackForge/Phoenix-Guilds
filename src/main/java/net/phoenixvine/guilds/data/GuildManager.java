@@ -1,5 +1,6 @@
 package net.phoenixvine.guilds.data;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -19,7 +20,6 @@ import java.util.UUID;
 public class GuildManager extends SavedData {
 
     private static final String SAVE_KEY = "phoenix_guilds";
-
     private static final int DATA_VERSION = 1;
 
     private final Map<UUID, Guild> guilds = new LinkedHashMap<>();
@@ -28,10 +28,12 @@ public class GuildManager extends SavedData {
 
     public static GuildManager get(ServerLevel overworld) {
         return overworld.getDataStorage().computeIfAbsent(
-                GuildManager::load, GuildManager::new, SAVE_KEY);
+                new SavedData.Factory<>(GuildManager::new, GuildManager::load),
+                SAVE_KEY
+        );
     }
 
-    private static GuildManager load(CompoundTag tag) {
+    private static GuildManager load(CompoundTag tag, HolderLookup.Provider registries) {
         GuildManager mgr = new GuildManager();
 
         if (tag.contains("dataVersion")) {
@@ -40,11 +42,12 @@ public class GuildManager extends SavedData {
 
         ListTag list = tag.getList("guilds", Tag.TAG_COMPOUND);
         for (int i = 0; i < list.size(); i++) {
-
             try {
                 Guild g = Guild.deserialize(list.getCompound(i));
                 mgr.guilds.put(g.getId(), g);
-                for (UUID m : g.getMembers()) mgr.memberIndex.put(m, g.getId());
+                for (UUID m : g.getMembers()) {
+                    mgr.memberIndex.put(m, g.getId());
+                }
             } catch (Exception e) {
                 PhoenixGuilds.LOGGER.error("Skipping corrupt guild entry {} in save data: {}", i,
                         list.getCompound(i), e);
@@ -69,10 +72,12 @@ public class GuildManager extends SavedData {
     }
 
     @Override
-    public @NotNull CompoundTag save(CompoundTag tag) {
+    public @NotNull CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
         tag.putInt("dataVersion", DATA_VERSION);
         ListTag list = new ListTag();
-        for (Guild g : guilds.values()) list.add(g.serialize());
+        for (Guild g : guilds.values()) {
+            list.add(g.serialize());
+        }
         tag.put("guilds", list);
 
         ListTag invList = new ListTag();

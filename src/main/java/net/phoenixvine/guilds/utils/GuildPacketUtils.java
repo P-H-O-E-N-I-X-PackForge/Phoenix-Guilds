@@ -2,10 +2,9 @@ package net.phoenixvine.guilds.utils;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.phoenixvine.guilds.data.Guild;
 import net.phoenixvine.guilds.data.GuildManager;
-import net.phoenixvine.guilds.network.GuildNetwork;
 import net.phoenixvine.guilds.network.S2CGuildFlagPacket;
 import net.phoenixvine.guilds.network.S2CGuildSyncPacket;
 
@@ -18,8 +17,10 @@ public class GuildPacketUtils {
     public static void pushFlagToOnlineMembers(Guild guild, MinecraftServer server) {
         var packet = new S2CGuildFlagPacket(guild.getId(), guild.getFlagIconId(), guild.getFlagPixelData(),
                 guild.isFlagUseDrawing(), guild.getFlagWidth(), guild.getFlagHeight());
-        for (ServerPlayer member : onlineMembers(guild, server))
-            GuildNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> member), packet);
+
+        for (ServerPlayer member : onlineMembers(guild, server)) {
+            PacketDistributor.sendToPlayer(member, packet);
+        }
     }
 
     public static S2CGuildSyncPacket buildPacketFor(ServerPlayer player, GuildManager guildManager) {
@@ -125,6 +126,6 @@ public class GuildPacketUtils {
     }
 
     public static void syncToPlayer(ServerPlayer player, GuildManager mgr) {
-        GuildNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), buildPacketFor(player, mgr));
+        PacketDistributor.sendToPlayer(player, buildPacketFor(player, mgr));
     }
 }

@@ -2,6 +2,7 @@ package net.phoenixvine.guilds.content.flag;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -21,7 +22,6 @@ import javax.annotation.Nullable;
 public class GuildFlagBlockEntity extends BlockEntity {
 
     private UUID guildId;
-
     private Direction facing = Direction.NORTH;
 
     public GuildFlagBlockEntity(BlockPos pos, BlockState state) {
@@ -43,18 +43,22 @@ public class GuildFlagBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(@NotNull CompoundTag tag) {
-        super.saveAdditional(tag);
-        if (guildId != null) tag.putUUID("guildId", guildId);
+    protected void saveAdditional(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        if (guildId != null) {
+            tag.putUUID("guildId", guildId);
+        }
         tag.putString("facing", facing.getSerializedName());
     }
 
     @Override
-    public void load(@NotNull CompoundTag tag) {
-        super.load(tag);
+    protected void loadAdditional(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
         guildId = tag.hasUUID("guildId") ? tag.getUUID("guildId") : null;
         facing = tag.contains("facing") ? Direction.byName(tag.getString("facing")) : Direction.NORTH;
-        if (facing == null) facing = Direction.NORTH;
+        if (facing == null) {
+            facing = Direction.NORTH;
+        }
     }
 
     @Nullable
@@ -64,12 +68,9 @@ public class GuildFlagBlockEntity extends BlockEntity {
     }
 
     @Override
-    public @NotNull CompoundTag getUpdateTag() {
-        return saveWithoutMetadata();
+    public @NotNull CompoundTag getUpdateTag(@NotNull HolderLookup.Provider registries) {
+        return saveWithoutMetadata(registries);
     }
 
-    @Override
-    public AABB getRenderBoundingBox() {
-        return new AABB(getBlockPos()).expandTowards(0, 1, -1);
-    }
+
 }

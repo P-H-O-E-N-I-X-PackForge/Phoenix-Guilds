@@ -1,183 +1,204 @@
 package net.phoenixvine.guilds.network;
 
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.phoenixvine.guilds.PhoenixGuilds;
 import net.phoenixvine.guilds.data.Guild;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 public record S2CGuildSyncPacket(
-                                 String guildName,
-                                 UUID ownerUUID,
-                                 String motd,
-                                 String description,
-                                 boolean friendlyFire,
-                                 boolean homeSet,
-                                 String flagIconId,
-                                 String flagPixelData,
-                                 boolean flagUseDrawing,
-                                 int flagWidth,
-                                 int flagHeight,
-                                 List<MemberEntry> members,
-                                 List<AllyEntry> allies,
-                                 List<PendingEntry> pendingOutgoing,
-                                 List<PendingEntry> pendingIncoming,
-                                 List<LogEntry> logEntries,
-                                 List<WikiPage> wikiPages,
-                                 List<GuildSummary> allGuilds) {
+        String guildName,
+        UUID ownerUUID,
+        String motd,
+        String description,
+        boolean friendlyFire,
+        boolean homeSet,
+        String flagIconId,
+        String flagPixelData,
+        boolean flagUseDrawing,
+        int flagWidth,
+        int flagHeight,
+        List<MemberEntry> members,
+        List<AllyEntry> allies,
+        List<PendingEntry> pendingOutgoing,
+        List<PendingEntry> pendingIncoming,
+        List<LogEntry> logEntries,
+        List<WikiPage> wikiPages,
+        List<GuildSummary> allGuilds
+) implements CustomPacketPayload {
 
-    public record MemberEntry(UUID uuid, String name, boolean isOnline, String rank) {}
+    public static final Type<S2CGuildSyncPacket> TYPE = new Type<>(
+            ResourceLocation.fromNamespaceAndPath(PhoenixGuilds.MOD_ID, "s2c_guild_sync")
+    );
 
-    public record GuildSummary(UUID id, String name, int memberCount, int onlineCount, String description) {}
+    // --- Nested Entry Records & Codecs ---
 
-    public record AllyEntry(String name, int memberCount, int onlineCount) {}
-
-    public record PendingEntry(String guildName) {}
-
-    public record LogEntry(long timestamp, String message) {}
-
-    public record WikiPage(String title, String content) {}
-
-    public static S2CGuildSyncPacket decode(FriendlyByteBuf buf) {
-        boolean inGuild = buf.readBoolean();
-        String guildName;
-        UUID ownerUUID;
-        String motd;
-        String description;
-        boolean friendlyFire;
-        boolean homeSet;
-        String flagIconId;
-        String flagPixelData;
-        boolean flagUseDrawing;
-        int flagWidth;
-        int flagHeight;
-        List<MemberEntry> members;
-        List<AllyEntry> allies;
-        List<PendingEntry> pendingOutgoing;
-        List<PendingEntry> pendingIncoming;
-        List<LogEntry> logEntries;
-        List<WikiPage> wikiPages;
-
-        if (inGuild) {
-            guildName = buf.readUtf(GuildNetworkLimits.NAME_MAX);
-            ownerUUID = buf.readUUID();
-            motd = buf.readUtf(GuildNetworkLimits.MOTD_MAX);
-            description = buf.readUtf(GuildNetworkLimits.DESCRIPTION_MAX);
-            friendlyFire = buf.readBoolean();
-            homeSet = buf.readBoolean();
-            flagIconId = buf.readUtf(GuildNetworkLimits.ICON_ID_MAX);
-            flagPixelData = buf.readUtf(Guild.FLAG_PIXEL_DATA_LENGTH);
-            flagUseDrawing = buf.readBoolean();
-            flagWidth = buf.readVarInt();
-            flagHeight = buf.readVarInt();
-            members = readList(buf, b -> new MemberEntry(b.readUUID(),
-                    b.readUtf(GuildNetworkLimits.MEMBER_NAME_MAX), b.readBoolean(),
-                    b.readUtf(GuildNetworkLimits.RANK_MAX)));
-            allies = readList(buf, b -> new AllyEntry(b.readUtf(GuildNetworkLimits.NAME_MAX), b.readVarInt(),
-                    b.readVarInt()));
-            pendingOutgoing = readList(buf, b -> new PendingEntry(b.readUtf(GuildNetworkLimits.NAME_MAX)));
-            pendingIncoming = readList(buf, b -> new PendingEntry(b.readUtf(GuildNetworkLimits.NAME_MAX)));
-            logEntries = readList(buf,
-                    b -> new LogEntry(b.readLong(), b.readUtf(GuildNetworkLimits.LOG_MESSAGE_MAX)));
-            wikiPages = readList(buf, b -> new WikiPage(b.readUtf(GuildNetworkLimits.WIKI_TITLE_MAX),
-                    b.readUtf(GuildNetworkLimits.WIKI_CONTENT_MAX)));
-        } else {
-            guildName = null;
-            ownerUUID = null;
-            motd = "";
-            description = "";
-            friendlyFire = false;
-            homeSet = false;
-            flagIconId = "";
-            flagPixelData = "0".repeat(Guild.FLAG_PIXEL_DATA_LENGTH);
-            flagUseDrawing = false;
-            flagWidth = 16;
-            flagHeight = 16;
-            members = List.of();
-            allies = List.of();
-            pendingOutgoing = List.of();
-            pendingIncoming = List.of();
-            logEntries = List.of();
-            wikiPages = List.of();
-        }
-
-        List<GuildSummary> allGuilds = readList(buf,
-                b -> new GuildSummary(b.readUUID(), b.readUtf(GuildNetworkLimits.NAME_MAX), b.readVarInt(),
-                        b.readVarInt(), b.readUtf(GuildNetworkLimits.DESCRIPTION_MAX)));
-
-        return new S2CGuildSyncPacket(guildName, ownerUUID, motd, description, friendlyFire, homeSet,
-                flagIconId, flagPixelData, flagUseDrawing, flagWidth, flagHeight,
-                members, allies, pendingOutgoing, pendingIncoming, logEntries, wikiPages, allGuilds);
+    public record MemberEntry(UUID uuid, String name, boolean isOnline, String rank) {
+        public static final StreamCodec<RegistryFriendlyByteBuf, MemberEntry> STREAM_CODEC = StreamCodec.composite(
+                UUIDUtil.STREAM_CODEC, MemberEntry::uuid,
+                ByteBufCodecs.stringUtf8(GuildNetworkLimits.MEMBER_NAME_MAX), MemberEntry::name,
+                ByteBufCodecs.BOOL, MemberEntry::isOnline,
+                ByteBufCodecs.stringUtf8(GuildNetworkLimits.RANK_MAX), MemberEntry::rank,
+                MemberEntry::new
+        );
+        public static final StreamCodec<RegistryFriendlyByteBuf, List<MemberEntry>> LIST_STREAM_CODEC =
+                STREAM_CODEC.apply(ByteBufCodecs.list());
     }
 
-    public void encode(FriendlyByteBuf buf) {
-        boolean inGuild = guildName != null;
-        buf.writeBoolean(inGuild);
-        if (inGuild) {
-            buf.writeUtf(guildName, GuildNetworkLimits.NAME_MAX);
-            buf.writeUUID(ownerUUID);
-            buf.writeUtf(motd, GuildNetworkLimits.MOTD_MAX);
-            buf.writeUtf(description, GuildNetworkLimits.DESCRIPTION_MAX);
-            buf.writeBoolean(friendlyFire);
-            buf.writeBoolean(homeSet);
-            buf.writeUtf(flagIconId, GuildNetworkLimits.ICON_ID_MAX);
-            buf.writeUtf(flagPixelData, Guild.FLAG_PIXEL_DATA_LENGTH);
-            buf.writeBoolean(flagUseDrawing);
-            buf.writeVarInt(flagWidth);
-            buf.writeVarInt(flagHeight);
-            writeList(buf, members, (b, m) -> {
-                b.writeUUID(m.uuid());
-                b.writeUtf(m.name(), GuildNetworkLimits.MEMBER_NAME_MAX);
-                b.writeBoolean(m.isOnline());
-                b.writeUtf(m.rank(), GuildNetworkLimits.RANK_MAX);
-            });
-            writeList(buf, allies, (b, a) -> {
-                b.writeUtf(a.name(), GuildNetworkLimits.NAME_MAX);
-                b.writeVarInt(a.memberCount());
-                b.writeVarInt(a.onlineCount());
-            });
-            writeList(buf, pendingOutgoing, (b, p) -> b.writeUtf(p.guildName(), GuildNetworkLimits.NAME_MAX));
-            writeList(buf, pendingIncoming, (b, p) -> b.writeUtf(p.guildName(), GuildNetworkLimits.NAME_MAX));
-            writeList(buf, logEntries, (b, l) -> {
-                b.writeLong(l.timestamp());
-                b.writeUtf(l.message(), GuildNetworkLimits.LOG_MESSAGE_MAX);
-            });
-            writeList(buf, wikiPages, (b, w) -> {
-                b.writeUtf(w.title(), GuildNetworkLimits.WIKI_TITLE_MAX);
-                b.writeUtf(w.content(), GuildNetworkLimits.WIKI_CONTENT_MAX);
-            });
-        }
-        writeList(buf, allGuilds, (b, g) -> {
-            b.writeUUID(g.id());
-            b.writeUtf(g.name(), GuildNetworkLimits.NAME_MAX);
-            b.writeVarInt(g.memberCount());
-            b.writeVarInt(g.onlineCount());
-            b.writeUtf(g.description(), GuildNetworkLimits.DESCRIPTION_MAX);
-        });
+    public record GuildSummary(UUID id, String name, int memberCount, int onlineCount, String description) {
+        public static final StreamCodec<RegistryFriendlyByteBuf, GuildSummary> STREAM_CODEC = StreamCodec.composite(
+                UUIDUtil.STREAM_CODEC, GuildSummary::id,
+                ByteBufCodecs.stringUtf8(GuildNetworkLimits.NAME_MAX), GuildSummary::name,
+                ByteBufCodecs.VAR_INT, GuildSummary::memberCount,
+                ByteBufCodecs.VAR_INT, GuildSummary::onlineCount,
+                ByteBufCodecs.stringUtf8(GuildNetworkLimits.DESCRIPTION_MAX), GuildSummary::description,
+                GuildSummary::new
+        );
+        public static final StreamCodec<RegistryFriendlyByteBuf, List<GuildSummary>> LIST_STREAM_CODEC =
+                STREAM_CODEC.apply(ByteBufCodecs.list());
     }
 
-    @FunctionalInterface
-    private interface ElemReader<T> {
-
-        T read(FriendlyByteBuf b);
+    public record AllyEntry(String name, int memberCount, int onlineCount) {
+        public static final StreamCodec<RegistryFriendlyByteBuf, AllyEntry> STREAM_CODEC = StreamCodec.composite(
+                ByteBufCodecs.stringUtf8(GuildNetworkLimits.NAME_MAX), AllyEntry::name,
+                ByteBufCodecs.VAR_INT, AllyEntry::memberCount,
+                ByteBufCodecs.VAR_INT, AllyEntry::onlineCount,
+                AllyEntry::new
+        );
+        public static final StreamCodec<RegistryFriendlyByteBuf, List<AllyEntry>> LIST_STREAM_CODEC =
+                STREAM_CODEC.apply(ByteBufCodecs.list());
     }
 
-    @FunctionalInterface
-    private interface ElemWriter<T> {
-
-        void write(FriendlyByteBuf b, T t);
+    public record PendingEntry(String guildName) {
+        public static final StreamCodec<RegistryFriendlyByteBuf, PendingEntry> STREAM_CODEC = StreamCodec.composite(
+                ByteBufCodecs.stringUtf8(GuildNetworkLimits.NAME_MAX), PendingEntry::guildName,
+                PendingEntry::new
+        );
+        public static final StreamCodec<RegistryFriendlyByteBuf, List<PendingEntry>> LIST_STREAM_CODEC =
+                STREAM_CODEC.apply(ByteBufCodecs.list());
     }
 
-    private static <T> List<T> readList(FriendlyByteBuf buf, ElemReader<T> r) {
-        int n = buf.readVarInt();
-        List<T> out = new ArrayList<>(n);
-        for (int i = 0; i < n; i++) out.add(r.read(buf));
-        return out;
+    public record LogEntry(long timestamp, String message) {
+        public static final StreamCodec<RegistryFriendlyByteBuf, LogEntry> STREAM_CODEC = StreamCodec.composite(
+                ByteBufCodecs.VAR_LONG, LogEntry::timestamp,
+                ByteBufCodecs.stringUtf8(GuildNetworkLimits.LOG_MESSAGE_MAX), LogEntry::message,
+                LogEntry::new
+        );
+        public static final StreamCodec<RegistryFriendlyByteBuf, List<LogEntry>> LIST_STREAM_CODEC =
+                STREAM_CODEC.apply(ByteBufCodecs.list());
     }
 
-    private static <T> void writeList(FriendlyByteBuf buf, List<T> list, ElemWriter<T> w) {
-        buf.writeVarInt(list.size());
-        for (T t : list) w.write(buf, t);
+    public record WikiPage(String title, String content) {
+        public static final StreamCodec<RegistryFriendlyByteBuf, WikiPage> STREAM_CODEC = StreamCodec.composite(
+                ByteBufCodecs.stringUtf8(GuildNetworkLimits.WIKI_TITLE_MAX), WikiPage::title,
+                ByteBufCodecs.stringUtf8(GuildNetworkLimits.WIKI_CONTENT_MAX), WikiPage::content,
+                WikiPage::new
+        );
+        public static final StreamCodec<RegistryFriendlyByteBuf, List<WikiPage>> LIST_STREAM_CODEC =
+                STREAM_CODEC.apply(ByteBufCodecs.list());
+    }
+
+    // --- Main Packet Stream Codec ---
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, S2CGuildSyncPacket> STREAM_CODEC = StreamCodec.of(
+            (buf, packet) -> {
+                boolean inGuild = packet.guildName() != null;
+                buf.writeBoolean(inGuild);
+                if (inGuild) {
+                    ByteBufCodecs.stringUtf8(GuildNetworkLimits.NAME_MAX).encode(buf, packet.guildName());
+                    UUIDUtil.STREAM_CODEC.encode(buf, packet.ownerUUID());
+                    ByteBufCodecs.stringUtf8(GuildNetworkLimits.MOTD_MAX).encode(buf, packet.motd());
+                    ByteBufCodecs.stringUtf8(GuildNetworkLimits.DESCRIPTION_MAX).encode(buf, packet.description());
+                    ByteBufCodecs.BOOL.encode(buf, packet.friendlyFire());
+                    ByteBufCodecs.BOOL.encode(buf, packet.homeSet());
+                    ByteBufCodecs.stringUtf8(GuildNetworkLimits.ICON_ID_MAX).encode(buf, packet.flagIconId());
+                    ByteBufCodecs.stringUtf8(Guild.FLAG_PIXEL_DATA_LENGTH).encode(buf, packet.flagPixelData());
+                    ByteBufCodecs.BOOL.encode(buf, packet.flagUseDrawing());
+                    ByteBufCodecs.VAR_INT.encode(buf, packet.flagWidth());
+                    ByteBufCodecs.VAR_INT.encode(buf, packet.flagHeight());
+                    MemberEntry.LIST_STREAM_CODEC.encode(buf, packet.members());
+                    AllyEntry.LIST_STREAM_CODEC.encode(buf, packet.allies());
+                    PendingEntry.LIST_STREAM_CODEC.encode(buf, packet.pendingOutgoing());
+                    PendingEntry.LIST_STREAM_CODEC.encode(buf, packet.pendingIncoming());
+                    LogEntry.LIST_STREAM_CODEC.encode(buf, packet.logEntries());
+                    WikiPage.LIST_STREAM_CODEC.encode(buf, packet.wikiPages());
+                }
+                GuildSummary.LIST_STREAM_CODEC.encode(buf, packet.allGuilds());
+            },
+            buf -> {
+                boolean inGuild = buf.readBoolean();
+                String guildName;
+                UUID ownerUUID;
+                String motd;
+                String description;
+                boolean friendlyFire;
+                boolean homeSet;
+                String flagIconId;
+                String flagPixelData;
+                boolean flagUseDrawing;
+                int flagWidth;
+                int flagHeight;
+                List<MemberEntry> members;
+                List<AllyEntry> allies;
+                List<PendingEntry> pendingOutgoing;
+                List<PendingEntry> pendingIncoming;
+                List<LogEntry> logEntries;
+                List<WikiPage> wikiPages;
+
+                if (inGuild) {
+                    guildName = ByteBufCodecs.stringUtf8(GuildNetworkLimits.NAME_MAX).decode(buf);
+                    ownerUUID = UUIDUtil.STREAM_CODEC.decode(buf);
+                    motd = ByteBufCodecs.stringUtf8(GuildNetworkLimits.MOTD_MAX).decode(buf);
+                    description = ByteBufCodecs.stringUtf8(GuildNetworkLimits.DESCRIPTION_MAX).decode(buf);
+                    friendlyFire = ByteBufCodecs.BOOL.decode(buf);
+                    homeSet = ByteBufCodecs.BOOL.decode(buf);
+                    flagIconId = ByteBufCodecs.stringUtf8(GuildNetworkLimits.ICON_ID_MAX).decode(buf);
+                    flagPixelData = ByteBufCodecs.stringUtf8(Guild.FLAG_PIXEL_DATA_LENGTH).decode(buf);
+                    flagUseDrawing = ByteBufCodecs.BOOL.decode(buf);
+                    flagWidth = ByteBufCodecs.VAR_INT.decode(buf);
+                    flagHeight = ByteBufCodecs.VAR_INT.decode(buf);
+                    members = MemberEntry.LIST_STREAM_CODEC.decode(buf);
+                    allies = AllyEntry.LIST_STREAM_CODEC.decode(buf);
+                    pendingOutgoing = PendingEntry.LIST_STREAM_CODEC.decode(buf);
+                    pendingIncoming = PendingEntry.LIST_STREAM_CODEC.decode(buf);
+                    logEntries = LogEntry.LIST_STREAM_CODEC.decode(buf);
+                    wikiPages = WikiPage.LIST_STREAM_CODEC.decode(buf);
+                } else {
+                    guildName = null;
+                    ownerUUID = null;
+                    motd = "";
+                    description = "";
+                    friendlyFire = false;
+                    homeSet = false;
+                    flagIconId = "";
+                    flagPixelData = "0".repeat(Guild.FLAG_PIXEL_DATA_LENGTH);
+                    flagUseDrawing = false;
+                    flagWidth = Guild.DEFAULT_FLAG_SIZE;
+                    flagHeight = Guild.DEFAULT_FLAG_SIZE;
+                    members = List.of();
+                    allies = List.of();
+                    pendingOutgoing = List.of();
+                    pendingIncoming = List.of();
+                    logEntries = List.of();
+                    wikiPages = List.of();
+                }
+
+                List<GuildSummary> allGuilds = GuildSummary.LIST_STREAM_CODEC.decode(buf);
+
+                return new S2CGuildSyncPacket(guildName, ownerUUID, motd, description, friendlyFire, homeSet,
+                        flagIconId, flagPixelData, flagUseDrawing, flagWidth, flagHeight,
+                        members, allies, pendingOutgoing, pendingIncoming, logEntries, wikiPages, allGuilds);
+            }
+    );
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

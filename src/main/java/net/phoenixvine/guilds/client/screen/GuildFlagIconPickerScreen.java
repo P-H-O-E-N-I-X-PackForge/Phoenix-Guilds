@@ -5,14 +5,14 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.phoenixvine.guilds.client.render.GuildFlagIconManager;
 
 import java.util.ArrayList;
@@ -54,7 +54,8 @@ public class GuildFlagIconPickerScreen extends Screen {
     private static List<ItemStack> allItems() {
         if (allItems == null) {
             List<ItemStack> out = new ArrayList<>();
-            for (Item item : ForgeRegistries.ITEMS.getValues()) {
+            // BuiltInRegistries.ITEM implements Iterable<Item> directly in 1.21.1
+            for (Item item : BuiltInRegistries.ITEM) {
                 if (item == Items.AIR) continue;
                 out.add(new ItemStack(item));
             }
@@ -158,9 +159,13 @@ public class GuildFlagIconPickerScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mx, double my, double delta) {
-        scrollOffset -= (int) delta;
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        scrollOffset -= (int) scrollY;
         return true;
+    }
+
+    @Override
+    public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
     }
 
     @Override

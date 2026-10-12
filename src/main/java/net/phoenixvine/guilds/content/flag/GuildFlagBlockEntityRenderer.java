@@ -3,6 +3,7 @@ package net.phoenixvine.guilds.content.flag;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.world.phys.AABB;
 import net.phoenixvine.guilds.client.render.ClientGuildFlagCache;
 import net.phoenixvine.guilds.client.render.GuildFlagContentRenderer;
 
@@ -27,5 +28,10 @@ public class GuildFlagBlockEntityRenderer implements BlockEntityRenderer<GuildFl
         GuildFlagContentRenderer.render(guildId, flag.useDrawing(), flag.iconId(), flag.pixelData(), flag.width(),
                 flag.height(), blockEntity.getFacing(), poseStack, buffer, packedLight, packedOverlay,
                 blockEntity.getLevel());
+    }
+
+    @Override
+    public @NotNull AABB getRenderBoundingBox(GuildFlagBlockEntity blockEntity) {
+        return new AABB(blockEntity.getBlockPos()).expandTowards(0, 1, -1);
     }
 }

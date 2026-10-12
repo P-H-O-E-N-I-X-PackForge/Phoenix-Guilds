@@ -8,8 +8,10 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.phoenixvine.guilds.client.render.ClientGuildCache;
 import net.phoenixvine.guilds.client.render.GuildFlagIconManager;
 import net.phoenixvine.guilds.client.render.GuildFlagPixelArt;
@@ -17,6 +19,7 @@ import net.phoenixvine.guilds.network.C2SSetGuildFlagPacket;
 import net.phoenixvine.guilds.network.GuildNetwork;
 
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -54,7 +57,6 @@ public class GuildFlagEditorScreen extends Screen {
     private int cols, rows;
     private int paletteCell;
     private int paletteW;
-    private int leftColW;
     private int panelW, panelH;
     private int previewSize;
 
@@ -80,7 +82,6 @@ public class GuildFlagEditorScreen extends Screen {
     private int paletteX, paletteY;
     private int previewX, previewY;
     private int resLabelX, resLabelY;
-    private int rightColX;
 
     public GuildFlagEditorScreen(Screen parent) {
         this(parent, null);
@@ -113,6 +114,9 @@ public class GuildFlagEditorScreen extends Screen {
             pixelColors[i] = longEnough ? GuildFlagPixelArt.colorAt(data, i) : 0xFFFFFF;
         }
     }
+    @Override
+    public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+    }
 
     @Override
     protected void init() {
@@ -127,6 +131,7 @@ public class GuildFlagEditorScreen extends Screen {
         }
         rightH += ROW_H;
 
+        int leftColW;
         if (mode == Mode.DRAWING) {
 
             cell = Mth.clamp(GRID_MAX / Math.max(cols, rows), 2, 16);
@@ -152,7 +157,7 @@ public class GuildFlagEditorScreen extends Screen {
 
         int contentTop = py + PAD + TITLE_H + ROW_GAP;
         int leftX = px + PAD;
-        rightColX = px + PAD + leftColW + COL_GAP;
+        int rightColX = px + PAD + leftColW + COL_GAP;
 
         if (mode == Mode.DRAWING) {
             gridX = leftX + (leftColW - gridW) / 2;
@@ -343,10 +348,20 @@ public class GuildFlagEditorScreen extends Screen {
 
     private void save() {
         StringBuilder sb = new StringBuilder(pixelColors.length * GuildFlagPixelArt.CHARS_PER_PIXEL);
-        for (int color : pixelColors) sb.append(GuildFlagPixelArt.toHex6(color));
-        GuildNetwork.CHANNEL.sendToServer(
-                new C2SSetGuildFlagPacket(targetGuildId, mode == Mode.DRAWING, iconId, sb.toString(), flagWidth,
-                        flagHeight));
+        for (int color : pixelColors) {
+            sb.append(GuildFlagPixelArt.toHex6(color));
+        }
+
+        PacketDistributor.sendToServer(
+                new C2SSetGuildFlagPacket(
+                        Optional.ofNullable(targetGuildId),
+                        mode == Mode.DRAWING,
+                        iconId,
+                        sb.toString(),
+                        flagWidth,
+                        flagHeight
+                )
+        );
         onClose();
     }
 

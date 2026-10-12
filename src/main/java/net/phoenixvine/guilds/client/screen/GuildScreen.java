@@ -9,8 +9,9 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.phoenixvine.guilds.client.render.ClientGuildCache;
 import net.phoenixvine.guilds.client.render.GuildFlagIconManager;
 import net.phoenixvine.guilds.client.render.GuildFlagPixelArt;
@@ -636,7 +637,7 @@ public class GuildScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mx, double my, double delta) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         int size = switch (activeTab) {
             case 0 -> ClientGuildCache.members.size();
             case 2 -> ClientGuildCache.allGuilds.size();
@@ -644,7 +645,7 @@ public class GuildScreen extends Screen {
             case 4 -> ClientGuildCache.wikiPages.size();
             default -> 0;
         };
-        scrollOff = (int) Math.max(0, Math.min(Math.max(0, size - 8), scrollOff - delta));
+        scrollOff = (int) Math.max(0, Math.min(Math.max(0, size - 8), scrollOff - (int) scrollY));
         return true;
     }
 
@@ -653,7 +654,8 @@ public class GuildScreen extends Screen {
                 action != GuildAction.DISBAND && action != GuildAction.TOGGLE_FF &&
                 action != GuildAction.HOME && action != GuildAction.SET_HOME;
         if (needsArg && arg.isEmpty()) return;
-        GuildNetwork.CHANNEL.sendToServer(new C2SGuildActionPacket(action, arg));
+
+        PacketDistributor.sendToServer(new C2SGuildActionPacket(action, arg));
     }
 
     private EditBox box(int x, int y, int w, int h, String hint) {
@@ -671,6 +673,10 @@ public class GuildScreen extends Screen {
         int lw = font.width(label) + 6;
         g.fill(x, y + 5, x + lw, y + 6, C_PANEL);
         g.drawString(font, label, x + 2, y, C_DIM, false);
+    }
+
+    @Override
+    public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
     }
 
     private void scissor(int top, int h) {

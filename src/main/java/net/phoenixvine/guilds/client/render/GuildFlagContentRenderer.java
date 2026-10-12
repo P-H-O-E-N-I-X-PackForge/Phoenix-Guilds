@@ -50,14 +50,33 @@ public final class GuildFlagContentRenderer {
             poseStack.scale(scaleX, scaleY, 1f);
             var matrix = poseStack.last().pose();
             var vc = buffer.getBuffer(RenderType.entityTranslucent(BACKING_TEXTURE));
-            vc.vertex(matrix, -0.5f, 0.5f, 0).color(255, 255, 255, 255).uv(0, 0)
-                    .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
-            vc.vertex(matrix, 0.5f, 0.5f, 0).color(255, 255, 255, 255).uv(1, 0)
-                    .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
-            vc.vertex(matrix, 0.5f, -0.5f, 0).color(255, 255, 255, 255).uv(1, 1)
-                    .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
-            vc.vertex(matrix, -0.5f, -0.5f, 0).color(255, 255, 255, 255).uv(0, 1)
-                    .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
+            vc.addVertex(matrix, -0.5f, 0.5f, 0.0f)
+                    .setColor(255, 255, 255, 255)
+                    .setUv(0.0f, 0.0f)
+                    .setOverlay(OverlayTexture.NO_OVERLAY)
+                    .setLight(packedLight)
+                    .setNormal(0.0f, 0.0f, 1.0f);
+
+            vc.addVertex(matrix, 0.5f, 0.5f, 0.0f)
+                    .setColor(255, 255, 255, 255)
+                    .setUv(1.0f, 0.0f)
+                    .setOverlay(OverlayTexture.NO_OVERLAY)
+                    .setLight(packedLight)
+                    .setNormal(0.0f, 0.0f, 1.0f);
+
+            vc.addVertex(matrix, 0.5f, -0.5f, 0.0f)
+                    .setColor(255, 255, 255, 255)
+                    .setUv(1.0f, 1.0f)
+                    .setOverlay(OverlayTexture.NO_OVERLAY)
+                    .setLight(packedLight)
+                    .setNormal(0.0f, 0.0f, 1.0f);
+
+            vc.addVertex(matrix, -0.5f, -0.5f, 0.0f)
+                    .setColor(255, 255, 255, 255)
+                    .setUv(0.0f, 1.0f)
+                    .setOverlay(OverlayTexture.NO_OVERLAY)
+                    .setLight(packedLight)
+                    .setNormal(0.0f, 0.0f, 1.0f);
             poseStack.popPose();
         }
     }
@@ -74,14 +93,33 @@ public final class GuildFlagContentRenderer {
         poseStack.scale(scaleX * iconScale, scaleY * iconScale, 1f);
         var matrix = poseStack.last().pose();
         var vc = buffer.getBuffer(RenderType.entityTranslucent(BACKING_TEXTURE));
-        vc.vertex(matrix, -0.5f, 0.5f, 0).color(255, 255, 255, 255).uv(0, 0)
-                .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
-        vc.vertex(matrix, 0.5f, 0.5f, 0).color(255, 255, 255, 255).uv(1, 0)
-                .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
-        vc.vertex(matrix, 0.5f, -0.5f, 0).color(255, 255, 255, 255).uv(1, 1)
-                .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
-        vc.vertex(matrix, -0.5f, -0.5f, 0).color(255, 255, 255, 255).uv(0, 1)
-                .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
+        vc.addVertex(matrix, -0.5f, 0.5f, 0.0f)
+                .setColor(255, 255, 255, 255)
+                .setUv(0.0f, 0.0f)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(packedLight)
+                .setNormal(0.0f, 0.0f, 1.0f);
+
+        vc.addVertex(matrix, 0.5f, 0.5f, 0.0f)
+                .setColor(255, 255, 255, 255)
+                .setUv(1.0f, 0.0f)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(packedLight)
+                .setNormal(0.0f, 0.0f, 1.0f);
+
+        vc.addVertex(matrix, 0.5f, -0.5f, 0.0f)
+                .setColor(255, 255, 255, 255)
+                .setUv(1.0f, 1.0f)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(packedLight)
+                .setNormal(0.0f, 0.0f, 1.0f);
+
+        vc.addVertex(matrix, -0.5f, -0.5f, 0.0f)
+                .setColor(255, 255, 255, 255)
+                .setUv(0.0f, 1.0f)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(packedLight)
+                .setNormal(0.0f, 0.0f, 1.0f);
         poseStack.popPose();
 
         if (!useDrawing && iconId != null && iconId.equals(SELF_RECURSIVE_ICON)) {

@@ -3,7 +3,7 @@ package net.phoenixvine.guilds.integration.gtceu;
 import net.phoenixvine.guilds.PhoenixGuilds;
 
 import java.util.UUID;
-
+/*
 public final class GTCEuVirtualRegistrySync {
 
     private GTCEuVirtualRegistrySync() {}
@@ -20,3 +20,6 @@ public final class GTCEuVirtualRegistrySync {
         }
     }
 }
+
+
+ */

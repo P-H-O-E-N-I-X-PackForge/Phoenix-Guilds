@@ -7,7 +7,10 @@ import java.util.UUID;
  * 8.x, so each version has its own implementation ({@link VirtualRegistryMigrator7}, {@code VirtualRegistryMigrator8});
  * this interface has no GregTech types and is always safe to load.
  */
+/*
 public interface VirtualRegistryMigrator {
 
     void migrate(UUID from, UUID to);
 }
+
+ */

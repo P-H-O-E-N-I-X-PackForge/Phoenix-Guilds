@@ -1,5 +1,5 @@
 package net.phoenixvine.guilds.integration.gtceu;
-
+/*
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.common.machine.owner.RegisterOwnerTypeEvent;
 
@@ -15,3 +15,6 @@ public final class GuildOwnerTypeRegistrar {
         event.register(1, GuildOwner::new);
     }
 }
+
+
+ */

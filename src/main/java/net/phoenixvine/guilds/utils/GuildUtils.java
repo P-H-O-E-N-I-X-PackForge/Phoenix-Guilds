@@ -1,11 +1,12 @@
 package net.phoenixvine.guilds.utils;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.registries.ForgeRegistries;
+
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.phoenixvine.guilds.data.Guild;
 import net.phoenixvine.guilds.data.GuildManager;
 import net.phoenixvine.guilds.network.GuildNetwork;
@@ -23,12 +24,11 @@ public class GuildUtils {
 
     public static void sendStatus(ServerPlayer player, String message, boolean error) {
         send(player, (error ? "§c" : "§a") + message);
-        GuildNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
-                new S2CGuildStatusPacket(message, error));
+        PacketDistributor.sendToPlayer(player, new S2CGuildStatusPacket(message, error));
     }
 
     public static int openGui(ServerPlayer player) {
-        GuildNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new S2COpenGuildScreenPacket());
+        PacketDistributor.sendToPlayer(player, new S2COpenGuildScreenPacket());
         return 1;
     }
 
@@ -45,12 +45,12 @@ public class GuildUtils {
 
         if (iconId.startsWith("item:")) {
             var id = ResourceLocation.tryParse(iconId.substring(5));
-            return id != null && ForgeRegistries.ITEMS.containsKey(id);
+            return id != null && BuiltInRegistries.ITEM.containsKey(id);
         }
 
         if (iconId.startsWith("block:")) {
             var id = ResourceLocation.tryParse(iconId.substring(6));
-            return id != null && ForgeRegistries.BLOCKS.containsKey(id);
+            return id != null && BuiltInRegistries.BLOCK.containsKey(id);
         }
 
         return false;

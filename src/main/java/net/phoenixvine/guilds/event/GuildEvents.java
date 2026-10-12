@@ -3,10 +3,10 @@ package net.phoenixvine.guilds.event;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.phoenixvine.guilds.PhoenixGuilds;
 import net.phoenixvine.guilds.data.Guild;
 import net.phoenixvine.guilds.data.GuildManager;
@@ -15,7 +15,7 @@ import java.util.*;
 
 import static net.phoenixvine.guilds.utils.GuildPacketUtils.*;
 
-@Mod.EventBusSubscriber(modid = PhoenixGuilds.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = PhoenixGuilds.MOD_ID)
 public class GuildEvents {
 
     @SubscribeEvent
@@ -33,7 +33,7 @@ public class GuildEvents {
     }
 
     @SubscribeEvent
-    public static void onLivingAttack(LivingAttackEvent event) {
+    public static void onLivingAttack(LivingIncomingDamageEvent event) {
         DamageSource src = event.getSource();
         if (!(event.getEntity() instanceof ServerPlayer victim)) return;
         if (!(src.getEntity() instanceof ServerPlayer attacker)) return;
