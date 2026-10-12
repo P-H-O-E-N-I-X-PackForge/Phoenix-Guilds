@@ -54,7 +54,6 @@ public class GuildFlagIconPickerScreen extends Screen {
     private static List<ItemStack> allItems() {
         if (allItems == null) {
             List<ItemStack> out = new ArrayList<>();
-            // BuiltInRegistries.ITEM implements Iterable<Item> directly in 1.21.1
             for (Item item : BuiltInRegistries.ITEM) {
                 if (item == Items.AIR) continue;
                 out.add(new ItemStack(item));
@@ -135,6 +134,10 @@ public class GuildFlagIconPickerScreen extends Screen {
         }
     }
 
+    @Override
+    public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+    }
+
     private int hoveredIndex(double mx, double my, int startIndex, int cols, int total) {
         if (mx < gridX || mx >= gridX + cols * CELL || my < gridY || my >= gridBottom) return -1;
         int col = (int) ((mx - gridX) / CELL);
@@ -150,7 +153,7 @@ public class GuildFlagIconPickerScreen extends Screen {
             int startIndex = scrollOffset * COLS;
             int idx = hoveredIndex(mx, my, startIndex, COLS, items.size());
             if (idx >= 0) {
-                onPick.accept(GuildFlagIconManager.itemIconId(items.get(idx).getItem()));
+                onPick.accept(GuildFlagIconManager.iconIdFor(items.get(idx).getItem()));
                 onClose();
                 return true;
             }
@@ -162,10 +165,6 @@ public class GuildFlagIconPickerScreen extends Screen {
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         scrollOffset -= (int) scrollY;
         return true;
-    }
-
-    @Override
-    public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
     }
 
     @Override

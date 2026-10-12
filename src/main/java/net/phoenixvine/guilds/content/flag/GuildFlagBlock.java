@@ -108,7 +108,6 @@ public class GuildFlagBlock extends Block implements EntityBlock {
         if (level.isClientSide() || !(placer instanceof Player player)) return;
         if (level.getBlockEntity(pos) instanceof GuildFlagBlockEntity entity) {
             entity.setGuildId(GuildAPI.getGuildIdOrPlayerFallback(player.getUUID()));
-
             entity.setFacing(player.getDirection());
         }
     }
@@ -118,6 +117,12 @@ public class GuildFlagBlock extends Block implements EntityBlock {
                                                        @NotNull BlockPos pos, @NotNull Player player, @NotNull InteractionHand hand,
                                                        @NotNull BlockHitResult hit) {
         if (hand != InteractionHand.MAIN_HAND) return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+
+        // If the hand has an item, try to customize the flag.
+        // If the hand is empty, return PASS_TO_DEFAULT_BLOCK_INTERACTION so it correctly falls through to useWithoutItem.
+        if (stack.isEmpty()) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
 
         BlockPos lowerPos = state.getValue(HALF) == DoubleBlockHalf.LOWER ? pos : pos.below();
         if (!(level.getBlockEntity(lowerPos) instanceof GuildFlagBlockEntity entity) || entity.getGuildId() == null) {
@@ -169,8 +174,8 @@ public class GuildFlagBlock extends Block implements EntityBlock {
         Item heldItem = held.getItem();
         String iconId = heldItem instanceof BlockItem blockItem &&
                 blockItem.getBlock() != Blocks.AIR ?
-                        "block:" + BuiltInRegistries.BLOCK.getKey(blockItem.getBlock()) :
-                        "item:" + BuiltInRegistries.ITEM.getKey(heldItem);
+                "block:" + BuiltInRegistries.BLOCK.getKey(blockItem.getBlock()) :
+                "item:" + BuiltInRegistries.ITEM.getKey(heldItem);
         GuildActions.handleSetFlag(player, mgr, guildId, false, iconId, null, guild.getFlagWidth(),
                 guild.getFlagHeight());
     }
