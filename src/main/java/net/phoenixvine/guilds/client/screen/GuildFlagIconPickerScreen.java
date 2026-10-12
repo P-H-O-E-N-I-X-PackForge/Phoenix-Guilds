@@ -149,7 +149,7 @@ public class GuildFlagIconPickerScreen extends Screen {
             int startIndex = scrollOffset * COLS;
             int idx = hoveredIndex(mx, my, startIndex, COLS, items.size());
             if (idx >= 0) {
-                onPick.accept(GuildFlagIconManager.itemIconId(items.get(idx).getItem()));
+                onPick.accept(GuildFlagIconManager.iconIdFor(items.get(idx).getItem()));
                 onClose();
                 return true;
             }
