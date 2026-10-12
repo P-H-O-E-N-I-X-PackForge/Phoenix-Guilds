@@ -110,6 +110,20 @@ legacyForge {
             programArguments.addAll('--refresh-dependencies')
             systemProperty('forge.enabledGameTestNamespaces', project.mod_id)
         }
+        client2 {
+            client()
+            sourceSet = sourceSets.main
+            gameDirectory = file('run/client2')
+            programArguments.addAll('--username', 'Dev2')
+            jvmArguments.addAll('-Xmx3G')
+        }
+        client3 {
+            client()
+            sourceSet = sourceSets.main
+            gameDirectory = file('run/client3')
+            programArguments.addAll('--username', 'Dev3')
+            jvmArguments.addAll('-Xmx3G')
+        }
         server {
             server()
             sourceSet = sourceSets.main

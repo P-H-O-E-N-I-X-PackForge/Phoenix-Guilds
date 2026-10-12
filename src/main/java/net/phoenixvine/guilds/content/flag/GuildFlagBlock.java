@@ -135,10 +135,17 @@ public class GuildFlagBlock extends Block implements EntityBlock {
 
         if (held.isEmpty()) {
             if (level.isClientSide()) {
-
-                ClientAccess.openFlagEditor(entity.getGuildId());
+                if (GuildAPI.isOfficerOrAbove(player.getUUID())) {
+                    ClientAccess.openFlagEditor(entity.getGuildId());
+                } else {
+                    player.displayClientMessage(Component.literal("§cOnly guild officers can edit the flag."), true);
+                }
             }
             return InteractionResult.sidedSuccess(level.isClientSide());
+        }
+
+        if (player.isShiftKeyDown()) {
+            return InteractionResult.PASS;
         }
 
         if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
