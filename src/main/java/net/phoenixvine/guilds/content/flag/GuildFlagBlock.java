@@ -148,7 +148,7 @@ public class GuildFlagBlock extends Block implements EntityBlock {
     protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState state, @NotNull Level level,
                                                         @NotNull BlockPos pos, @NotNull Player player,
                                                         @NotNull BlockHitResult hit) {
-        if (player.isShiftKeyDown()) {
+        if (player.isShiftKeyDown() && !player.getMainHandItem().isEmpty()) {
             return InteractionResult.PASS;
         }
 
