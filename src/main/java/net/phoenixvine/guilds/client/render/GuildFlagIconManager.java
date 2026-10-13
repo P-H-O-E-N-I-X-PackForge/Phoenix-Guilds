@@ -16,7 +16,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 
-
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import static net.phoenixvine.guilds.client.GuildThemeUtils.C_FAINT;

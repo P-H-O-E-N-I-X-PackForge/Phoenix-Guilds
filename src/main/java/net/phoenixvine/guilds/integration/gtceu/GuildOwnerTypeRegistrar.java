@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.common.machine.owner.RegisterOwnerTypeEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 
-
 public final class GuildOwnerTypeRegistrar {
 
     private GuildOwnerTypeRegistrar() {}
@@ -15,5 +14,4 @@ public final class GuildOwnerTypeRegistrar {
         event.register(1, GuildOwner::new);
     }
 }
-
 

@@ -1,7 +1,5 @@
 package net.phoenixvine.guilds.integration.gtceu;
 
-
-
 import com.gregtechceu.gtceu.common.machine.owner.PlayerOwner;
 import net.minecraft.network.chat.Component;
 import net.phoenixvine.guilds.GuildAPI;
@@ -59,5 +57,4 @@ public class GuildOwner extends PlayerOwner {
         return object instanceof GuildOwner && super.equals(object);
     }
 }
-
 

@@ -117,8 +117,6 @@ public class GuildFlagBlock extends Block implements EntityBlock {
                                                        @NotNull BlockHitResult hit) {
         if (hand != InteractionHand.MAIN_HAND) return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
 
-        // If the hand has an item, try to customize the flag.
-        // If the hand is empty, return PASS_TO_DEFAULT_BLOCK_INTERACTION so it correctly falls through to useWithoutItem.
         if (stack.isEmpty()) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }

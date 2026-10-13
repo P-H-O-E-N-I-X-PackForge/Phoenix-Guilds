@@ -35,7 +35,7 @@ public class PhoenixGuildsClient {
         PhoenixGuilds.LOGGER.info("Hey, we're on Minecraft version {}!", Minecraft.getInstance().getLaunchedVersion());
 
         event.enqueueWork(() -> {
-            // Block entity renderer handles the flag visuals
+            
         });
 
         SuiteHudBar.register(PhoenixGuilds.MOD_ID, SuiteHudBar.PRIORITY_GUILDS,

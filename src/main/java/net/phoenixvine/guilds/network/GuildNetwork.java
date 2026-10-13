@@ -13,7 +13,6 @@ public class GuildNetwork {
     public static void register(RegisterPayloadHandlersEvent event) {
         final PayloadRegistrar registrar = event.registrar("1");
 
-        // --- C2S (Serverbound) Packets ---
         registrar.playToServer(
                 C2SGuildActionPacket.TYPE,
                 C2SGuildActionPacket.STREAM_CODEC,
@@ -32,7 +31,6 @@ public class GuildNetwork {
                 C2SRequestGuildFlagPacket::handle
         );
 
-        // --- S2C (Clientbound) Packets ---
         registrar.playToClient(
                 S2CGuildSyncPacket.TYPE,
                 S2CGuildSyncPacket.STREAM_CODEC,

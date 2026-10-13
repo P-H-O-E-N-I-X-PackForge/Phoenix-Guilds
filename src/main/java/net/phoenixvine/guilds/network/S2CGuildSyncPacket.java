@@ -37,8 +37,6 @@ public record S2CGuildSyncPacket(
             ResourceLocation.fromNamespaceAndPath(PhoenixGuilds.MOD_ID, "s2c_guild_sync")
     );
 
-    // --- Nested Entry Records & Codecs ---
-
     public record MemberEntry(UUID uuid, String name, boolean isOnline, String rank) {
         public static final StreamCodec<RegistryFriendlyByteBuf, MemberEntry> STREAM_CODEC = StreamCodec.composite(
                 UUIDUtil.STREAM_CODEC, MemberEntry::uuid,
@@ -103,8 +101,6 @@ public record S2CGuildSyncPacket(
         public static final StreamCodec<RegistryFriendlyByteBuf, List<WikiPage>> LIST_STREAM_CODEC =
                 STREAM_CODEC.apply(ByteBufCodecs.list());
     }
-
-    // --- Main Packet Stream Codec ---
 
     public static final StreamCodec<RegistryFriendlyByteBuf, S2CGuildSyncPacket> STREAM_CODEC = StreamCodec.of(
             (buf, packet) -> {

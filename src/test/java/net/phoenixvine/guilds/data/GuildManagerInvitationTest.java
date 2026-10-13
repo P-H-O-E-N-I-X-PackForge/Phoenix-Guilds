@@ -64,7 +64,6 @@ class GuildManagerInvitationTest {
         assertEquals("declined", result);
         assertFalse(mgr.isInGuild(targetUuid));
 
-        // Should not be able to accept after declining
         String acceptResult = mgr.acceptInvite(targetUuid, "TestGuild");
         assertEquals("no_invite", acceptResult);
     }

@@ -72,5 +72,4 @@ public class GuildFlagBlockEntity extends BlockEntity {
         return saveWithoutMetadata(registries);
     }
 
-
 }

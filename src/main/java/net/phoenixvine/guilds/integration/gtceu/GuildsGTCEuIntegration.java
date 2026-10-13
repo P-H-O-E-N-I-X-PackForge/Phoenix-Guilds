@@ -15,7 +15,6 @@ public final class GuildsGTCEuIntegration {
         return ModList.get().isLoaded(GTCEu.MOD_ID);
     }
 
-
     public static boolean usesNewApi() {
         try {
             Class.forName("com.gregtechceu.gtceu.api.multiblock.MultiblockWorldSavedData", false,
@@ -36,6 +35,4 @@ public final class GuildsGTCEuIntegration {
         }
     }
 }
-
-
 

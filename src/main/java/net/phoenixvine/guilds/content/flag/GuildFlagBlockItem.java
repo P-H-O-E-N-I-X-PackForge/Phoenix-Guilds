@@ -27,5 +27,4 @@ public class GuildFlagBlockItem extends BlockItem {
                 Component.translatable("item.phoenix_guilds.guild_flag.credit").withStyle(ChatFormatting.DARK_GRAY));
     }
 
-
 }

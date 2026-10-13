@@ -42,7 +42,7 @@ public class GuildActions {
         }
         var guild = mgr.createGuild(name, player.getUUID());
         send(player, "§aCreated Guild §f" + guild.getName() + ".");
-        //migrateGTCEuOwnership(player.getUUID(), guild.getId());
+        
         syncToPlayer(player, mgr);
         broadcastAllGuildList(Objects.requireNonNull(player.getServer()), mgr);
     }
@@ -100,7 +100,7 @@ public class GuildActions {
                     Guild guild = guildOpt.get();
                     guild.addLog(player.getName().getString() + " joined the Guild.");
                     send(player, "§aYou have joined §f" + guild.getName() + "§a.");
-                    //migrateGTCEuOwnership(player.getUUID(), guild.getId());
+                    
                     syncToGuild(guild, player.getServer(), mgr);
                     broadcastAllGuildList(player.getServer(), mgr);
                 }

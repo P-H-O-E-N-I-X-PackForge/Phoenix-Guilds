@@ -13,7 +13,6 @@ import net.phoenixvine.guilds.client.GuildsKeybinds;
 import net.phoenixvine.guilds.client.PhoenixGuildsClient;
 import net.phoenixvine.guilds.content.flag.GuildFlagBlocks;
 
-
 import net.phoenixvine.guilds.integration.gtceu.GuildOwnerTypeRegistrar;
 import net.phoenixvine.guilds.integration.gtceu.GuildsGTCEuIntegration;
 import org.apache.logging.log4j.LogManager;
@@ -30,12 +29,10 @@ public class PhoenixGuilds {
 
         modEventBus.addListener(this::commonSetup);
 
-        // Safe client initialization on NeoForge 1.21.1
         if (FMLEnvironment.dist.isClient()) {
             PhoenixGuildsClient.init(modEventBus);
             modEventBus.register(GuildsKeybinds.class);
         }
-
 
                if (GuildsGTCEuIntegration.isAvailable()) {
             try {
@@ -45,7 +42,6 @@ public class PhoenixGuilds {
                         "ownership won't be guild-aware this session.", t);
             }
         }
-         
 
     }
 
