@@ -1,9 +1,9 @@
 package net.phoenixvine.guilds.integration.gtceu;
-/*
+
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.common.machine.owner.RegisterOwnerTypeEvent;
+import net.neoforged.bus.api.SubscribeEvent;
 
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public final class GuildOwnerTypeRegistrar {
 
@@ -17,4 +17,3 @@ public final class GuildOwnerTypeRegistrar {
 }
 
 
- */

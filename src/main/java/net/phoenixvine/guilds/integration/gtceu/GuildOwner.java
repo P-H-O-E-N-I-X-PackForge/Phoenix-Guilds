@@ -2,6 +2,7 @@ package net.phoenixvine.guilds.integration.gtceu;
 
 
 
+import com.gregtechceu.gtceu.common.machine.owner.PlayerOwner;
 import net.minecraft.network.chat.Component;
 import net.phoenixvine.guilds.GuildAPI;
 
@@ -11,7 +12,7 @@ import org.jetbrains.annotations.UnmodifiableView;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-/*
+
 public class GuildOwner extends PlayerOwner {
 
     private static final Component DISPLAY_NAME = Component.translatable("gtceu.ownership.name.phoenix_guilds");
@@ -60,4 +61,3 @@ public class GuildOwner extends PlayerOwner {
 }
 
 
- */

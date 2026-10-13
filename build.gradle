@@ -116,7 +116,7 @@ repositories {
 }
 
 base {
-    archivesName = mod_id
+    archivesName = 'phoenix-guilds-neoforge'
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
@@ -133,6 +133,7 @@ neoForge {
         client {
             client()
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            programArguments.addAll '--username', 'Phoenixvine'
         }
         server {
             server()
@@ -143,8 +144,18 @@ neoForge {
             type = "gameTestServer"
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
-
-
+        client2 {
+            client()
+            gameDirectory = project.file('run/client2')
+            programArguments.addAll '--username', 'Dev2'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+        client3 {
+            client()
+            gameDirectory = project.file('run/client3')
+            programArguments.addAll '--username', 'Dev3'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
 
         configureEach {
             systemProperty 'neoforge.logging.markers', 'REGISTRIES'
@@ -163,29 +174,42 @@ configurations {
     runtimeClasspath.extendsFrom localRuntime
 }
 
+// NeoForge ships its own mixin (net.fabricmc:sponge-mixin). Guilds has no mixins,
+// so keep the original org.spongepowered:mixin off every classpath. Otherwise FML
+// sees two modules named org.spongepowered.mixin and fails to launch.
+configurations.configureEach {
+    exclude group: 'org.spongepowered', module: 'mixin'
+}
+
 dependencies {
     implementation "org.projectlombok:lombok:1.18.30"
     annotationProcessor "org.projectlombok:lombok:1.18.30"
 
-    //implementation("com.gregtechceu.gtceu:gtceu-${minecraft_version}:${gtceu_version}:slim") { transitive = false }
     implementation "com.tterrag.registrate:Registrate:${registrate_version}"
     implementation "net.phoenixvine.wiki:neoforge:0.5.8"
 
+    // GregTech Modern + what it needs at compile time
+    implementation "com.gregtechceu.gtceu:gtceu-${minecraft_version}:${gtm_version}"
+    implementation "brachy.modularui:modularui-mc${minecraft_version}:${mui_version}"
+    implementation "org.appliedenergistics:appliedenergistics2:${ae2_version}"
+    implementation("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") { transitive = false }
+
+    // Dev-run only: GTM's runtime requirements and quality-of-life mods
+    localRuntime "org.appliedenergistics:guideme:${guideme_version}"
+    localRuntime "net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}"
+    localRuntime "dev.engine-room.flywheel:flywheel-neoforge-${minecraft_version}:${flywheel_version}"
+    localRuntime "dev.emi:emi-neoforge:${emi_version}+${minecraft_version}"
+    localRuntime "top.theillusivec4.curios:curios-neoforge:${curios_version}+${minecraft_version}"
+    localRuntime "curse.maven:jade-324717:8591319"
+    localRuntime "curse.maven:tmrv-1194921:8336857"
+    localRuntime "dev.architectury:architectury-neoforge:${architectury_version}"
+    localRuntime "dev.latvian.mods:rhino:${rhino_version}"
+    localRuntime "dev.latvian.mods:kubejs-neoforge:${kubejs_version}"
+
     compileOnly "org.jetbrains:annotations:26.0.2"
 
-    dependencies {
-        implementation "org.projectlombok:lombok:1.18.30"
-        annotationProcessor "org.projectlombok:lombok:1.18.30"
-
-        implementation "com.tterrag.registrate:Registrate:${registrate_version}"
-        implementation "net.phoenixvine.wiki:neoforge:0.5.7"
-
-        compileOnly "org.jetbrains:annotations:26.0.2"
-
-        // --- Add JUnit 5 dependencies ---
-        testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
-        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    }
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
@@ -200,7 +224,7 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
             mod_version            : mod_version,
             mod_authors            : mod_authors,
             mod_description        : mod_description,
-        //    gtceu_version            : gtceu_version,
+            //    gtceu_version            : gtceu_version,
     ]
     inputs.properties replaceProperties
     expand replaceProperties

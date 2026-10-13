@@ -32,7 +32,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.phoenixvine.guilds.GuildAPI;
-import net.phoenixvine.guilds.client.ClientAccess;
 import net.phoenixvine.guilds.data.Guild;
 import net.phoenixvine.guilds.data.GuildManager;
 import net.phoenixvine.guilds.event.GuildActions;
@@ -124,6 +123,10 @@ public class GuildFlagBlock extends Block implements EntityBlock {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
 
+        if (player.isShiftKeyDown()) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+
         BlockPos lowerPos = state.getValue(HALF) == DoubleBlockHalf.LOWER ? pos : pos.below();
         if (!(level.getBlockEntity(lowerPos) instanceof GuildFlagBlockEntity entity) || entity.getGuildId() == null) {
             return ItemInteractionResult.SUCCESS;
@@ -147,13 +150,21 @@ public class GuildFlagBlock extends Block implements EntityBlock {
     protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState state, @NotNull Level level,
                                                         @NotNull BlockPos pos, @NotNull Player player,
                                                         @NotNull BlockHitResult hit) {
+        if (player.isShiftKeyDown()) {
+            return InteractionResult.PASS;
+        }
+
         BlockPos lowerPos = state.getValue(HALF) == DoubleBlockHalf.LOWER ? pos : pos.below();
         if (!(level.getBlockEntity(lowerPos) instanceof GuildFlagBlockEntity entity) || entity.getGuildId() == null) {
             return InteractionResult.SUCCESS;
         }
 
         if (level.isClientSide()) {
-            ClientAccess.openFlagEditor(entity.getGuildId());
+            if (GuildAPI.isOfficerOrAbove(player.getUUID())) {
+                net.phoenixvine.guilds.client.ClientAccess.openFlagEditor(entity.getGuildId());
+            } else {
+                player.displayClientMessage(Component.literal("§cOnly guild officers can edit the flag."), true);
+            }
         }
         return InteractionResult.SUCCESS;
     }
@@ -172,10 +183,7 @@ public class GuildFlagBlock extends Block implements EntityBlock {
         }
 
         Item heldItem = held.getItem();
-        String iconId = heldItem instanceof BlockItem blockItem &&
-                blockItem.getBlock() != Blocks.AIR ?
-                "block:" + BuiltInRegistries.BLOCK.getKey(blockItem.getBlock()) :
-                "item:" + BuiltInRegistries.ITEM.getKey(heldItem);
+        String iconId = net.phoenixvine.guilds.client.render.GuildFlagIconManager.iconIdFor(heldItem);
         GuildActions.handleSetFlag(player, mgr, guildId, false, iconId, null, guild.getFlagWidth(),
                 guild.getFlagHeight());
     }

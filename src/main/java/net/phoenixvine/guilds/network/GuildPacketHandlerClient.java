@@ -1,11 +1,14 @@
 package net.phoenixvine.guilds.network;
 
 import net.minecraft.client.Minecraft;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.phoenixvine.guilds.client.render.ClientGuildCache;
 import net.phoenixvine.guilds.client.render.ClientGuildFlagCache;
 import net.phoenixvine.guilds.client.screen.GuildScreen;
 
+@OnlyIn(Dist.CLIENT)
 public class GuildPacketHandlerClient {
 
     public static void handleSyncPacket(S2CGuildSyncPacket pkt, IPayloadContext context) {

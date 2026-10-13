@@ -36,25 +36,25 @@ public class GuildNetwork {
         registrar.playToClient(
                 S2CGuildSyncPacket.TYPE,
                 S2CGuildSyncPacket.STREAM_CODEC,
-                GuildPacketHandlerClient::handleSyncPacket
+                (pkt, context) -> GuildPacketHandlerClient.handleSyncPacket(pkt, context)
         );
 
         registrar.playToClient(
                 S2COpenGuildScreenPacket.TYPE,
                 S2COpenGuildScreenPacket.STREAM_CODEC,
-                GuildPacketHandlerClient::handleOpenScreenPacket
+                (pkt, context) -> GuildPacketHandlerClient.handleOpenScreenPacket(pkt, context)
         );
 
         registrar.playToClient(
                 S2CGuildFlagPacket.TYPE,
                 S2CGuildFlagPacket.STREAM_CODEC,
-                GuildPacketHandlerClient::handleClientFlagPacket
+                (pkt, context) -> GuildPacketHandlerClient.handleClientFlagPacket(pkt, context)
         );
 
         registrar.playToClient(
                 S2CGuildStatusPacket.TYPE,
                 S2CGuildStatusPacket.STREAM_CODEC,
-                GuildPacketHandlerClient::handleStatusPacket
+                (pkt, context) -> GuildPacketHandlerClient.handleStatusPacket(pkt, context)
         );
     }
 }

@@ -1,8 +1,8 @@
 package net.phoenixvine.guilds.integration.gtceu;
-/*
+
 import com.gregtechceu.gtceu.GTCEu;
 
-import net.minecraftforge.fml.ModList;
+import net.neoforged.fml.ModList;
 import net.phoenixvine.guilds.PhoenixGuilds;
 
 import java.util.UUID;
@@ -39,4 +39,3 @@ public final class GuildsGTCEuIntegration {
 
 
 
- */

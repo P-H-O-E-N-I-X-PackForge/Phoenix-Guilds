@@ -14,6 +14,8 @@ import net.phoenixvine.guilds.client.PhoenixGuildsClient;
 import net.phoenixvine.guilds.content.flag.GuildFlagBlocks;
 
 
+import net.phoenixvine.guilds.integration.gtceu.GuildOwnerTypeRegistrar;
+import net.phoenixvine.guilds.integration.gtceu.GuildsGTCEuIntegration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -33,6 +35,17 @@ public class PhoenixGuilds {
             PhoenixGuildsClient.init(modEventBus);
             modEventBus.register(GuildsKeybinds.class);
         }
+
+
+               if (GuildsGTCEuIntegration.isAvailable()) {
+            try {
+                modEventBus.register(GuildOwnerTypeRegistrar.class);
+            } catch (Throwable t) {
+                LOGGER.error("GregTech-Modern is present but its integration failed to register. Machine " +
+                        "ownership won't be guild-aware this session.", t);
+            }
+        }
+         
 
     }
 
