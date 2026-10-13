@@ -31,7 +31,6 @@ public class PhoenixGuilds {
 
         if (FMLEnvironment.dist.isClient()) {
             PhoenixGuildsClient.init(modEventBus);
-            modEventBus.register(GuildsKeybinds.class);
         }
 
                if (GuildsGTCEuIntegration.isAvailable()) {

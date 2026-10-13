@@ -11,7 +11,7 @@ import net.phoenixvine.guilds.PhoenixGuilds;
 import com.mojang.blaze3d.platform.InputConstants;
 import org.lwjgl.glfw.GLFW;
 
-@EventBusSubscriber(modid = PhoenixGuilds.MOD_ID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
+
 public class GuildsKeybinds {
 
     public static final KeyMapping OPEN_GUILDS = new KeyMapping(
