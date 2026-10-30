@@ -39,12 +39,7 @@ public final class GuildGates {
     }
 
     public static boolean allowed(ServerPlayer player, String feature) {
-        try {
-            return SuiteGates.allowed(player, feature, SuiteGates.ANY_SCOPE);
-        } catch (NoClassDefFoundError e) {
-            // without the wiki nothing can be bound, so everything is allowed
-            return true;
-        }
+        return SuiteGates.allowed(player, feature, SuiteGates.ANY_SCOPE);
     }
 
     /** Whether the player may do the action; tells them when not. */
