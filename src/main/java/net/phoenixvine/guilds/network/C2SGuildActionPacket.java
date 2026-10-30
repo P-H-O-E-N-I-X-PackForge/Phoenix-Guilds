@@ -27,6 +27,7 @@ public record C2SGuildActionPacket(GuildAction action, String arg) {
             ServerPlayer player = ctx.get().getSender();
             if (player == null) return;
             GuildManager mgr = GuildManager.get(Objects.requireNonNull(player.getServer()).overworld());
+            if (!net.phoenixvine.guilds.common.GuildGates.check(player, action)) return;
             switch (action) {
                 case CREATE -> handleCreate(player, mgr, arg);
                 case INVITE -> handleInvite(player, mgr, arg);
