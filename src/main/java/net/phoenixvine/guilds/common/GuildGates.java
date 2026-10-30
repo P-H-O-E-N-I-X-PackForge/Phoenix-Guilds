@@ -1,6 +1,5 @@
 package net.phoenixvine.guilds.common;
 
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.phoenixvine.guilds.data.GuildAction;
 import net.phoenixvine.wiki.api.gate.SuiteGates;
@@ -46,7 +45,7 @@ public final class GuildGates {
     public static boolean check(ServerPlayer player, GuildAction action) {
         String feature = featureFor(action);
         if (feature == null || allowed(player, feature)) return true;
-        player.displayClientMessage(Component.literal("Your team has not researched this yet."), true);
+        player.displayClientMessage(SuiteGates.denial(feature, SuiteGates.ANY_SCOPE), false);
         return false;
     }
 }
