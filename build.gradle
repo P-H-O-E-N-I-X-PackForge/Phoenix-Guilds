@@ -182,7 +182,7 @@ dependencies {
     annotationProcessor "org.projectlombok:lombok:1.18.30"
 
     implementation "com.tterrag.registrate:Registrate:${registrate_version}"
-    implementation "net.phoenixvine.wiki:neoforge:0.5.8"
+    implementation "net.phoenixvine.wiki:neoforge:0.6.0"
 
     // GregTech Modern + what it needs at compile time
     implementation "com.gregtechceu.gtceu:gtceu-${minecraft_version}:${gtm_version}"

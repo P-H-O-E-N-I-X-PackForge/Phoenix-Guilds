@@ -36,6 +36,7 @@ public record C2SGuildActionPacket(GuildAction action, String arg) implements Cu
         context.enqueueWork(() -> {
             if (!(context.player() instanceof ServerPlayer player)) return;
             GuildManager mgr = GuildManager.get(Objects.requireNonNull(player.getServer()).overworld());
+            if (!net.phoenixvine.guilds.common.GuildGates.check(player, packet.action())) return;
             switch (packet.action()) {
                 case CREATE -> handleCreate(player, mgr, packet.arg());
                 case INVITE -> handleInvite(player, mgr, packet.arg());
