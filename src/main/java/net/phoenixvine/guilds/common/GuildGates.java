@@ -7,7 +7,8 @@ import net.phoenixvine.wiki.api.gate.SuiteGates;
 /**
  * What a player may do with guilds, as features of the shared gate API ({@link SuiteGates}): another mod binds them to
  * research or anything else, e.g. {@code SuiteGates.bind(GuildGates.CREATE, "*", "conflux:node/foo")}. A feature that
- * nothing is bound to is allowed. Managing a guild you are already in (ranks, invites, leaving) is never gated, so a gate
+ * nothing is bound to is allowed. Managing a guild you are already in (ranks, invites, leaving) is never gated, so a
+ * gate
  * cannot trap a player in a guild.
  */
 public final class GuildGates {
