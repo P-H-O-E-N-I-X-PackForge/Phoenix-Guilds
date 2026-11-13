@@ -3,7 +3,6 @@ package net.phoenixvine.guilds.client;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -12,6 +11,7 @@ import net.phoenixvine.guilds.PhoenixGuilds;
 import net.phoenixvine.guilds.client.screen.GuildScreen;
 import net.phoenixvine.guilds.content.flag.GuildFlagBlockEntityRenderer;
 import net.phoenixvine.guilds.content.flag.GuildFlagBlocks;
+import net.phoenixvine.guilds.utils.GuildsLang;
 import net.phoenixvine.wiki.client.suite.SuiteHudBar;
 import net.phoenixvine.wiki.theme.PhoenixTheme;
 
@@ -38,7 +38,7 @@ public class PhoenixGuildsClient {
 
         SuiteHudBar.register(PhoenixGuilds.MOD_ID, SuiteHudBar.PRIORITY_GUILDS,
                 ResourceLocation.fromNamespaceAndPath(PhoenixGuilds.MOD_ID, "textures/gui/suite_bar_icon.png"),
-                Component.literal("§fOpen Guild Menu"),
+                GuildsLang.tr("phoenix_guilds.phoenix_guilds_client.open_guild_menu"),
                 () -> Minecraft.getInstance().setScreen(
                         new GuildScreen(Minecraft.getInstance().screen)));
     }

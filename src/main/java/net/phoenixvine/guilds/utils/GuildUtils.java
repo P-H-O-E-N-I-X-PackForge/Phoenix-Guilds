@@ -21,6 +21,10 @@ public class GuildUtils {
         player.sendSystemMessage(Component.literal(msg));
     }
 
+    public static void send(ServerPlayer player, Component msg) {
+        player.sendSystemMessage(msg);
+    }
+
     public static void sendStatus(ServerPlayer player, String message, boolean error) {
         send(player, (error ? "§c" : "§a") + message);
         GuildNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),

@@ -11,6 +11,7 @@ import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.phoenixvine.guilds.client.GuildsText;
 import net.phoenixvine.guilds.client.render.ClientGuildCache;
 import net.phoenixvine.guilds.client.render.GuildFlagIconManager;
 import net.phoenixvine.guilds.client.render.GuildFlagPixelArt;
@@ -18,6 +19,7 @@ import net.phoenixvine.guilds.data.GuildAction;
 import net.phoenixvine.guilds.network.C2SGuildActionPacket;
 import net.phoenixvine.guilds.network.GuildNetwork;
 import net.phoenixvine.guilds.network.S2CGuildSyncPacket;
+import net.phoenixvine.guilds.utils.GuildsLang;
 import net.phoenixvine.wiki.PhoenixWikiAPI;
 import net.phoenixvine.wiki.client.screen.WikiTheme;
 import net.phoenixvine.wiki.theme.PhoenixTheme;
@@ -76,7 +78,7 @@ public class GuildScreen extends Screen {
     private final Screen parent;
 
     public GuildScreen(Screen parent) {
-        super(Component.literal("Guilds"));
+        super(GuildsLang.tr("phoenix_guilds.guild_screen.guilds"));
         this.parent = parent;
     }
 
@@ -143,10 +145,10 @@ public class GuildScreen extends Screen {
         Minecraft.getInstance().setScreen(new ConfirmScreen(confirmed -> {
             if (confirmed) act(GuildAction.DISBAND, "");
             Minecraft.getInstance().setScreen(this);
-        }, Component.literal("§4Delete Guild"),
-                Component.literal("Permanently delete '" + name + "'? This cannot be undone. Every member, " +
-                        "the wiki, the log, and the flag will be gone."),
-                Component.literal("Delete Guild"), Component.literal("Cancel")));
+        }, GuildsLang.tr("phoenix_guilds.guild_screen.delete_guild_2"),
+                GuildsLang.tr("phoenix_guilds.guild_screen.permanently_delete_this_cannot_be", name),
+                GuildsLang.tr("phoenix_guilds.guild_screen.delete_guild"),
+                GuildsLang.tr("phoenix_guilds.guild_flag_editor_screen.cancel")));
     }
 
     private void buildAlliesWidgets() {
@@ -210,8 +212,10 @@ public class GuildScreen extends Screen {
         g.drawCenteredString(font, title, px + W / 2, py + (HEADER - 8) / 2,
                 ClientGuildCache.isInGuild() ? C_GOLD : C_TEXT);
 
-        g.drawString(font, "Themes", px + W - 46, py + (HEADER - 8) / 2, C_DIM, false);
-        g.drawString(font, "Wiki", px + W - 46 - font.width("Wiki") - 8, py + (HEADER - 8) / 2, C_DIM, false);
+        g.drawString(font, GuildsText.str("phoenix_guilds.guild.themes"), px + W - 46, py + (HEADER - 8) / 2, C_DIM,
+                false);
+        g.drawString(font, GuildsText.str("phoenix_guilds.guild.wiki"), px + W - 46 - font.width("Wiki") - 8,
+                py + (HEADER - 8) / 2, C_DIM, false);
     }
 
     private void drawTabs(GuiGraphics g) {
@@ -236,8 +240,9 @@ public class GuildScreen extends Screen {
     private void renderGuildTab(GuiGraphics g) {
         int y = py + CONTENT_TOP;
         if (!ClientGuildCache.isInGuild()) {
-            g.drawCenteredString(font, "You are not in a Guild.", px + W / 2, y + 4, C_DIM);
-            g.drawString(font, "Guild Name:", px + 10, y + 20, C_DIM, false);
+            g.drawCenteredString(font, GuildsText.str("phoenix_guilds.guild.you_are_not_in_a"), px + W / 2, y + 4,
+                    C_DIM);
+            g.drawString(font, GuildsText.str("phoenix_guilds.guild.guild_name"), px + 10, y + 20, C_DIM, false);
             return;
         }
 
@@ -332,7 +337,8 @@ public class GuildScreen extends Screen {
             }
         }
 
-        if (members.isEmpty()) g.drawCenteredString(font, "No members.", px + W / 2, listTop + 4, C_DIM);
+        if (members.isEmpty()) g.drawCenteredString(font, GuildsText.str("phoenix_guilds.guild.no_members"), px + W / 2,
+                listTop + 4, C_DIM);
         if (ClientGuildCache.isAtLeastOfficer()) {
             inlineBtns.add(new InlineBtn(px + W - 72, py + H - 70, 62, 14,
                     () -> {
@@ -340,14 +346,16 @@ public class GuildScreen extends Screen {
                         minecraft.setScreen(new GuildFlagEditorScreen(this));
                     },
                     0xFF0A1A33, 0xFF10285A, "Edit Flag"));
-            g.drawString(font, "Invite Player:", px + 10, py + H - 65, C_DIM, false);
+            g.drawString(font, GuildsText.str("phoenix_guilds.guild.invite_player"), px + 10, py + H - 65, C_DIM,
+                    false);
         }
         g.fill(px, py + H - 34, px + W, py + H - 33, C_BORDER2);
     }
 
     private void renderAlliesTab(GuiGraphics g) {
         if (!ClientGuildCache.isInGuild()) {
-            g.drawCenteredString(font, "You must be in a Guild to form alliances.", px + W / 2, py + 100, C_DIM);
+            g.drawCenteredString(font, GuildsText.str("phoenix_guilds.guild.you_must_be_in_a"), px + W / 2, py + 100,
+                    C_DIM);
             return;
         }
         int y = py + CONTENT_TOP;
@@ -382,7 +390,7 @@ public class GuildScreen extends Screen {
         y += 14;
         List<S2CGuildSyncPacket.AllyEntry> allies = ClientGuildCache.allies;
         if (allies.isEmpty()) {
-            g.drawString(font, "No Allies yet.", px + 12, y + 3, C_FAINT, false);
+            g.drawString(font, GuildsText.str("phoenix_guilds.guild.no_allies_yet"), px + 12, y + 3, C_FAINT, false);
         } else {
             for (int i = 0; i < allies.size(); i++) {
                 S2CGuildSyncPacket.AllyEntry a = allies.get(i);
@@ -443,14 +451,17 @@ public class GuildScreen extends Screen {
         }
         RenderSystem.disableScissor();
 
-        if (all.isEmpty()) g.drawCenteredString(font, "No Guilds exist yet.", px + W / 2, listTop + 4, C_DIM);
+        if (all.isEmpty()) g.drawCenteredString(font, GuildsText.str("phoenix_guilds.guild.no_guilds_exist_yet"),
+                px + W / 2, listTop + 4, C_DIM);
         if (!ClientGuildCache.isInGuild())
-            g.drawString(font, "Create a new Guild:", px + 10, py + H - 70, C_DIM, false);
+            g.drawString(font, GuildsText.str("phoenix_guilds.guild.create_a_new_guild"), px + 10, py + H - 70, C_DIM,
+                    false);
     }
 
     private void renderLogTab(GuiGraphics g) {
         if (!ClientGuildCache.isInGuild()) {
-            g.drawCenteredString(font, "You must be in a Guild to view the log.", px + W / 2, py + 100, C_DIM);
+            g.drawCenteredString(font, GuildsText.str("phoenix_guilds.guild.you_must_be_in_a_2"), px + W / 2, py + 100,
+                    C_DIM);
             return;
         }
         List<S2CGuildSyncPacket.LogEntry> log = ClientGuildCache.logEntries;
@@ -459,7 +470,8 @@ public class GuildScreen extends Screen {
         int listH = py + H - 10 - listTop;
 
         if (log.isEmpty()) {
-            g.drawCenteredString(font, "No events recorded yet.", px + W / 2, listTop + 4, C_DIM);
+            g.drawCenteredString(font, GuildsText.str("phoenix_guilds.guild.no_events_recorded_yet"), px + W / 2,
+                    listTop + 4, C_DIM);
             return;
         }
 
@@ -488,7 +500,8 @@ public class GuildScreen extends Screen {
 
     private void renderWikiTab(GuiGraphics g, int mx, int my) {
         if (!ClientGuildCache.isInGuild()) {
-            g.drawCenteredString(font, "You must be in a Guild to view the wiki.", px + W / 2, py + 100, C_DIM);
+            g.drawCenteredString(font, GuildsText.str("phoenix_guilds.guild.you_must_be_in_a_3"), px + W / 2, py + 100,
+                    C_DIM);
             return;
         }
 
@@ -523,7 +536,10 @@ public class GuildScreen extends Screen {
         RenderSystem.disableScissor();
 
         if (filtered.isEmpty())
-            g.drawString(font, pages.isEmpty() ? "No Pages yet." : "No results.", lx + 4, listTop + 3, C_FAINT,
+            g.drawString(font,
+                    pages.isEmpty() ? GuildsText.str("phoenix_guilds.guild.no_pages_yet") :
+                            GuildsText.str("phoenix_guilds.guild.no_results"),
+                    lx + 4, listTop + 3, C_FAINT,
                     false);
 
         if (officer)
@@ -584,7 +600,8 @@ public class GuildScreen extends Screen {
                 selectedWikiTitle = null;
             }
         } else {
-            g.drawCenteredString(font, "Select a Page.", rx + rw / 2, py + CONTENT_TOP + 40, C_FAINT);
+            g.drawCenteredString(font, GuildsText.str("phoenix_guilds.guild.select_a_page"), rx + rw / 2,
+                    py + CONTENT_TOP + 40, C_FAINT);
         }
     }
 

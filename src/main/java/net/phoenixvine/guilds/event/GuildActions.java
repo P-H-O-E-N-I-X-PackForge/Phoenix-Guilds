@@ -15,6 +15,7 @@ import net.phoenixvine.guilds.data.GuildManager;
 import net.phoenixvine.guilds.data.GuildRank;
 import net.phoenixvine.guilds.utils.GuildContextAction;
 import net.phoenixvine.guilds.utils.GuildPacketUtils;
+import net.phoenixvine.guilds.utils.GuildsLang;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,19 +31,19 @@ public class GuildActions {
 
     public static void handleCreate(ServerPlayer player, GuildManager mgr, String name) {
         if (name.isBlank()) {
-            send(player, "§cGuild name cannot be empty.");
+            send(player, GuildsLang.tr("phoenix_guilds.guild_actions.guild_name_cannot_be_empty"));
             return;
         }
         if (mgr.isInGuild(player.getUUID())) {
-            send(player, "§cYou are already in a Guild.");
+            send(player, GuildsLang.tr("phoenix_guilds.guild_actions.you_are_already_in_a"));
             return;
         }
         if (mgr.getGuildByName(name).isPresent()) {
-            send(player, "§cA Guild named '§f" + name + "§c' already exists.");
+            send(player, GuildsLang.tr("phoenix_guilds.guild_actions.a_guild_named_already_exists", name));
             return;
         }
         var guild = mgr.createGuild(name, player.getUUID());
-        send(player, "§aCreated Guild §f" + guild.getName() + ".");
+        send(player, GuildsLang.tr("phoenix_guilds.guild_actions.created_guild", guild.getName()));
         migrateGTCEuOwnership(player.getUUID(), guild.getId());
         syncToPlayer(player, mgr);
         broadcastAllGuildList(Objects.requireNonNull(player.getServer()), mgr);
@@ -58,36 +59,40 @@ public class GuildActions {
             ServerPlayer target = Objects.requireNonNull(player.getServer()).getPlayerList()
                     .getPlayerByName(targetName);
             if (target == null) {
-                send(player, "§cPlayer '§f" + targetName + "§c' is not online.");
+                send(player, GuildsLang.tr("phoenix_guilds.guild_actions.player_is_not_online", targetName));
                 return;
             }
 
             String result = mgr.sendInvite(guild.getId(), player.getUUID(), target.getUUID());
             switch (result) {
                 case "sent" -> {
-                    send(player, "§aInvitation sent to §f" + targetName + "§a.");
-                    MutableComponent msg = Component
-                            .literal("§aYou have been invited to join Guild §f" + guild.getName() + "§a. ")
-                            .append(Component.literal("§e[Accept]")
+                    send(player, GuildsLang.tr("phoenix_guilds.guild_actions.invitation_sent_to", targetName));
+                    MutableComponent msg = GuildsLang
+                            .tr("phoenix_guilds.guild_actions.you_have_been_invited_to", guild.getName())
+                            .append(GuildsLang.tr("phoenix_guilds.guild_actions.accept")
                                     .withStyle(s -> s
                                             .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
                                                     "/guilds accept " + guild.getName()))
                                             .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                                                    Component.literal("Click to accept")))))
+                                                    GuildsLang.tr("phoenix_guilds.guild_actions.click_to_accept")))))
                             .append(" ")
-                            .append(Component.literal("§c[Decline]")
+                            .append(GuildsLang.tr("phoenix_guilds.guild_actions.decline")
                                     .withStyle(s -> s
                                             .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
                                                     "/guilds decline " + guild.getName()))
                                             .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                                                    Component.literal("Click to decline")))));
+                                                    GuildsLang.tr("phoenix_guilds.guild_actions.click_to_decline")))));
                     target.sendSystemMessage(msg);
                 }
-                case "no_permission" -> send(player, "§cOfficers and above can invite players.");
-                case "already_in_guild" -> send(player, "§c" + targetName + " is already in a Guild.");
-                case "guild_full" -> send(player, "§cYour Guild is full (§f" + Guild.MAX_MEMBERS + "§c members max).");
-                case "already_invited" -> send(player, "§c" + targetName + " has already been invited.");
-                default -> send(player, "§cCould not send invite: " + result);
+                case "no_permission" -> send(player,
+                        GuildsLang.tr("phoenix_guilds.guild_actions.officers_and_above_can_invite"));
+                case "already_in_guild" -> send(player,
+                        GuildsLang.tr("phoenix_guilds.guild_actions.is_already_in_a_guild", targetName));
+                case "guild_full" -> send(player,
+                        GuildsLang.tr("phoenix_guilds.guild_actions.your_guild_is_full_members", Guild.MAX_MEMBERS));
+                case "already_invited" -> send(player,
+                        GuildsLang.tr("phoenix_guilds.guild_actions.has_already_been_invited", targetName));
+                default -> send(player, GuildsLang.tr("phoenix_guilds.guild_actions.could_not_send_invite", result));
             }
         });
     }
@@ -100,17 +105,19 @@ public class GuildActions {
                 if (guildOpt.isPresent()) {
                     Guild guild = guildOpt.get();
                     guild.addLog(player.getName().getString() + " joined the Guild.");
-                    send(player, "§aYou have joined §f" + guild.getName() + "§a.");
+                    send(player, GuildsLang.tr("phoenix_guilds.guild_actions.you_have_joined", guild.getName()));
                     migrateGTCEuOwnership(player.getUUID(), guild.getId());
                     syncToGuild(guild, player.getServer(), mgr);
                     broadcastAllGuildList(player.getServer(), mgr);
                 }
             }
-            case "already_in_guild" -> send(player, "§cYou are already in a Guild.");
-            case "guild_not_found" -> send(player, "§cGuild '§f" + guildName + "§c' not found.");
-            case "no_invite" -> send(player, "§cYou have no pending invitation from §f" + guildName + "§c.");
-            case "guild_full" -> send(player, "§cThat Guild is full.");
-            default -> send(player, "§cCould not accept invite: " + result);
+            case "already_in_guild" -> send(player, GuildsLang.tr("phoenix_guilds.guild_actions.you_are_already_in_a"));
+            case "guild_not_found" -> send(player,
+                    GuildsLang.tr("phoenix_guilds.guild_actions.guild_not_found", guildName));
+            case "no_invite" -> send(player,
+                    GuildsLang.tr("phoenix_guilds.guild_actions.you_have_no_pending_invitation", guildName));
+            case "guild_full" -> send(player, GuildsLang.tr("phoenix_guilds.guild_actions.that_guild_is_full"));
+            default -> send(player, GuildsLang.tr("phoenix_guilds.guild_actions.could_not_accept_invite", result));
         }
     }
 
@@ -118,22 +125,24 @@ public class GuildActions {
         String result = mgr.declineInvite(player.getUUID(), guildName);
         switch (result) {
             case "declined" -> {
-                send(player, "§7Declined invitation from §f" + guildName + "§7.");
+                send(player, GuildsLang.tr("phoenix_guilds.guild_actions.declined_invitation_from", guildName));
                 mgr.getGuildByName(guildName).ifPresent(guild -> {
                     guild.addLog(player.getName().getString() + " declined the invitation.");
                     syncToGuild(guild, player.getServer(), mgr);
                 });
             }
-            case "guild_not_found" -> send(player, "§cGuild '§f" + guildName + "§c' not found.");
-            case "no_invite" -> send(player, "§cYou have no pending invitation from §f" + guildName + "§c.");
-            default -> send(player, "§cCould not decline invite: " + result);
+            case "guild_not_found" -> send(player,
+                    GuildsLang.tr("phoenix_guilds.guild_actions.guild_not_found", guildName));
+            case "no_invite" -> send(player,
+                    GuildsLang.tr("phoenix_guilds.guild_actions.you_have_no_pending_invitation", guildName));
+            default -> send(player, GuildsLang.tr("phoenix_guilds.guild_actions.could_not_decline_invite", result));
         }
     }
 
     public static void handleHome(ServerPlayer player, GuildManager mgr) {
         GuildActions.runWithGuild(player, mgr, (guild) -> {
             if (!guild.isHomeSet()) {
-                send(player, "§cGuild home has not been set yet.");
+                send(player, GuildsLang.tr("phoenix_guilds.guild_actions.guild_home_has_not_been"));
                 return;
             }
 
@@ -141,7 +150,7 @@ public class GuildActions {
             Long expires = HOME_COOLDOWNS.get(player.getUUID());
             if (expires != null && now < expires) {
                 long secsLeft = (expires - now) / 1000;
-                send(player, "§cGuild home is on cooldown for §f" + secsLeft + "s§c.");
+                send(player, GuildsLang.tr("phoenix_guilds.guild_actions.guild_home_is_on_cooldown", secsLeft));
                 return;
             }
             HOME_COOLDOWNS.put(player.getUUID(), now + HOME_COOLDOWN_MS);
@@ -149,7 +158,7 @@ public class GuildActions {
             ServerLevel targetLevel = Objects.requireNonNull(player.getServer()).getLevel(
                     ResourceKey.create(Registries.DIMENSION, guild.getHomeDimension()));
             if (targetLevel == null) {
-                send(player, "§cGuild home dimension is no longer loaded.");
+                send(player, GuildsLang.tr("phoenix_guilds.guild_actions.guild_home_dimension_is_no"));
                 return;
             }
             if (player.level() == targetLevel) {
@@ -159,7 +168,7 @@ public class GuildActions {
                 player.teleportTo(targetLevel, guild.getHomeX(), guild.getHomeY(), guild.getHomeZ(), guild.getHomeYaw(),
                         guild.getHomePitch());
             }
-            send(player, "§aTeleported to §f" + guild.getName() + "§a's home.");
+            send(player, GuildsLang.tr("phoenix_guilds.guild_actions.teleported_to_s_home", guild.getName()));
         });
     }
 
@@ -168,7 +177,7 @@ public class GuildActions {
             ServerPlayer target = Objects.requireNonNull(player.getServer()).getPlayerList()
                     .getPlayerByName(targetName);
             if (target == null || !guild.isMember(target.getUUID())) {
-                send(player, "§c" + targetName + " is not in your Guild or is not online.");
+                send(player, GuildsLang.tr("phoenix_guilds.guild_actions.is_not_in_your_guild", targetName));
                 return;
             }
             String result = mgr.promotePlayer(guild.getId(), player.getUUID(), target.getUUID());
@@ -177,15 +186,17 @@ public class GuildActions {
                     GuildRank newRank = guild.getRank(target.getUUID());
                     guild.addLog(
                             player.getName().getString() + " promoted " + targetName + " to " + newRank.label() + ".");
-                    send(player, "§aPromoted §f" + targetName + " §ato §f" + newRank.label() + "§a.");
-                    target.sendSystemMessage(Component
-                            .literal("§aYou were promoted to §f" + newRank.label() + " §ain §f" + guild.getName() +
-                                    "§a."));
+                    send(player,
+                            GuildsLang.tr("phoenix_guilds.guild_actions.promoted_to", targetName, newRank.label()));
+                    target.sendSystemMessage(GuildsLang.tr("phoenix_guilds.guild_actions.you_were_promoted_to_in",
+                            newRank.label(), guild.getName()));
                     syncToGuild(guild, player.getServer(), mgr);
                 }
-                case "no_permission" -> send(player, "§cOnly the Guild owner can promote players.");
-                case "already_owner" -> send(player, "§cUse /guilds transfer to make them owner.");
-                default -> send(player, "§cCould not promote: " + result);
+                case "no_permission" -> send(player,
+                        GuildsLang.tr("phoenix_guilds.guild_actions.only_the_guild_owner_can_4"));
+                case "already_owner" -> send(player,
+                        GuildsLang.tr("phoenix_guilds.guild_actions.use_guilds_transfer_to_make"));
+                default -> send(player, GuildsLang.tr("phoenix_guilds.guild_actions.could_not_promote", result));
             }
         });
     }
@@ -195,22 +206,25 @@ public class GuildActions {
             ServerPlayer target = Objects.requireNonNull(player.getServer()).getPlayerList()
                     .getPlayerByName(targetName);
             if (target == null || !guild.isMember(target.getUUID())) {
-                send(player, "§c" + targetName + " is not in your Guild or is not online.");
+                send(player, GuildsLang.tr("phoenix_guilds.guild_actions.is_not_in_your_guild", targetName));
                 return;
             }
             String result = mgr.demotePlayer(guild.getId(), player.getUUID(), target.getUUID());
             switch (result) {
                 case "ok" -> {
                     guild.addLog(player.getName().getString() + " demoted " + targetName + " to Member.");
-                    send(player, "§7Demoted §f" + targetName + " §7to Member.");
+                    send(player, GuildsLang.tr("phoenix_guilds.guild_actions.demoted_to_member", targetName));
                     target.sendSystemMessage(
-                            Component.literal("§7You were demoted to Member in §f" + guild.getName() + "§7."));
+                            GuildsLang.tr("phoenix_guilds.guild_actions.you_were_demoted_to_member", guild.getName()));
                     syncToGuild(guild, player.getServer(), mgr);
                 }
-                case "no_permission" -> send(player, "§cOnly the Guild owner can demote players.");
-                case "cant_demote_owner" -> send(player, "§cCannot demote the owner.");
-                case "already_member" -> send(player, "§c" + targetName + " is already a Member.");
-                default -> send(player, "§cCould not demote: " + result);
+                case "no_permission" -> send(player,
+                        GuildsLang.tr("phoenix_guilds.guild_actions.only_the_guild_owner_can_3"));
+                case "cant_demote_owner" -> send(player,
+                        GuildsLang.tr("phoenix_guilds.guild_actions.cannot_demote_the_owner"));
+                case "already_member" -> send(player,
+                        GuildsLang.tr("phoenix_guilds.guild_actions.is_already_a_member", targetName));
+                default -> send(player, GuildsLang.tr("phoenix_guilds.guild_actions.could_not_demote", result));
             }
         });
     }
@@ -220,18 +234,19 @@ public class GuildActions {
             ServerPlayer target = Objects.requireNonNull(player.getServer()).getPlayerList()
                     .getPlayerByName(targetName);
             if (target == null || !guild.isMember(target.getUUID())) {
-                send(player, "§c" + targetName + " is not in your Guild or is not online.");
+                send(player, GuildsLang.tr("phoenix_guilds.guild_actions.is_not_in_your_guild", targetName));
                 return;
             }
             String result = mgr.transferOwnership(guild.getId(), player.getUUID(), target.getUUID());
             if ("ok".equals(result)) {
                 guild.addLog(player.getName().getString() + " transferred ownership to " + targetName + ".");
-                send(player, "§aTransferred ownership of §f" + guild.getName() + " §ato §f" + targetName + "§a.");
+                send(player, GuildsLang.tr("phoenix_guilds.guild_actions.transferred_ownership_of_to", guild.getName(),
+                        targetName));
                 target.sendSystemMessage(
-                        Component.literal("§aYou are now the owner of Guild §f" + guild.getName() + "§a."));
+                        GuildsLang.tr("phoenix_guilds.guild_actions.you_are_now_the_owner", guild.getName()));
                 syncToGuild(guild, player.getServer(), mgr);
             } else {
-                send(player, "§cOnly the Guild owner can transfer ownership.");
+                send(player, GuildsLang.tr("phoenix_guilds.guild_actions.only_the_guild_owner_can_2"));
             }
         });
     }
@@ -239,23 +254,24 @@ public class GuildActions {
     public static void handleRemove(ServerPlayer player, GuildManager mgr, String targetName) {
         GuildActions.runWithGuild(player, mgr, (guild) -> {
             if (!guild.hasRank(player.getUUID(), GuildRank.OFFICER)) {
-                send(player, "§cOfficers and above can remove players.");
+                send(player, GuildsLang.tr("phoenix_guilds.guild_actions.officers_and_above_can_remove"));
                 return;
             }
             ServerPlayer target = Objects.requireNonNull(player.getServer()).getPlayerList()
                     .getPlayerByName(targetName);
             if (target == null || !guild.isMember(target.getUUID())) {
-                send(player, "§c" + targetName + " is not in your Guild or is not online.");
+                send(player, GuildsLang.tr("phoenix_guilds.guild_actions.is_not_in_your_guild", targetName));
                 return;
             }
             if (guild.getRank(target.getUUID()).ordinal() >= guild.getRank(player.getUUID()).ordinal()) {
-                send(player, "§cYou cannot remove someone of equal or higher rank.");
+                send(player, GuildsLang.tr("phoenix_guilds.guild_actions.you_cannot_remove_someone_of"));
                 return;
             }
             mgr.removeMember(guild.getId(), target.getUUID());
             guild.addLog(player.getName().getString() + " removed " + targetName + ".");
-            send(player, "§cRemoved §f" + targetName + " §cfrom §f" + guild.getName() + "§c.");
-            target.sendSystemMessage(Component.literal("§cYou were removed from Guild §f" + guild.getName() + "§c."));
+            send(player, GuildsLang.tr("phoenix_guilds.guild_actions.removed_from", targetName, guild.getName()));
+            target.sendSystemMessage(
+                    GuildsLang.tr("phoenix_guilds.guild_actions.you_were_removed_from_guild", guild.getName()));
             syncToGuild(guild, player.getServer(), mgr);
             syncToPlayer(target, mgr);
             GuildActions.broadcastAllGuildList(player.getServer(), mgr);
@@ -268,7 +284,7 @@ public class GuildActions {
             UUID gid = guild.getId();
             guild.addLog(player.getName().getString() + " left the Guild.");
             mgr.removeMember(gid, player.getUUID());
-            send(player, "§cLeft Guild §f" + name + "§c.");
+            send(player, GuildsLang.tr("phoenix_guilds.guild_actions.left_guild", name));
             syncToPlayer(player, mgr);
             mgr.getGuildById(gid).ifPresent(s -> syncToGuild(s, player.getServer(), mgr));
             GuildActions.broadcastAllGuildList(Objects.requireNonNull(player.getServer()), mgr);
@@ -278,16 +294,16 @@ public class GuildActions {
     public static void handleDisband(ServerPlayer player, GuildManager mgr) {
         GuildActions.runWithGuild(player, mgr, (guild) -> {
             if (!guild.getOwner().equals(player.getUUID())) {
-                send(player, "§cOnly the owner can delete the Guild.");
+                send(player, GuildsLang.tr("phoenix_guilds.guild_actions.only_the_owner_can_delete"));
                 return;
             }
             String name = guild.getName();
             List<ServerPlayer> allOnline = onlineMembers(guild, player.getServer());
             for (ServerPlayer mem : allOnline)
                 if (!mem.getUUID().equals(player.getUUID()))
-                    mem.sendSystemMessage(Component.literal("§cGuild §f" + name + " §cwas deleted."));
+                    mem.sendSystemMessage(GuildsLang.tr("phoenix_guilds.guild_actions.guild_was_deleted", name));
             mgr.disbandGuild(guild.getId());
-            send(player, "§cDeleted Guild §f" + name + "§c.");
+            send(player, GuildsLang.tr("phoenix_guilds.guild_actions.deleted_guild", name));
             for (ServerPlayer mem : allOnline) syncToPlayer(mem, mgr);
             GuildActions.broadcastAllGuildList(Objects.requireNonNull(player.getServer()), mgr);
         });
@@ -296,11 +312,11 @@ public class GuildActions {
     public static void handleSetMotd(ServerPlayer player, GuildManager mgr, String text) {
         GuildActions.runWithGuild(player, mgr, (guild) -> {
             if (!mgr.setMotd(guild.getId(), player.getUUID(), text)) {
-                send(player, "§cOfficers and above can set the MOTD.");
+                send(player, GuildsLang.tr("phoenix_guilds.guild_actions.officers_and_above_can_set_3"));
                 return;
             }
             guild.addLog(player.getName().getString() + " updated the MOTD.");
-            send(player, "§aGuild MOTD updated.");
+            send(player, GuildsLang.tr("phoenix_guilds.guild_actions.guild_motd_updated"));
             syncToGuild(guild, player.getServer(), mgr);
             GuildActions.broadcastAllGuildList(Objects.requireNonNull(player.getServer()), mgr);
         });
@@ -309,10 +325,10 @@ public class GuildActions {
     public static void handleSetDesc(ServerPlayer player, GuildManager mgr, String text) {
         GuildActions.runWithGuild(player, mgr, (guild) -> {
             if (!mgr.setDescription(guild.getId(), player.getUUID(), text)) {
-                send(player, "§cOfficers and above can set the description.");
+                send(player, GuildsLang.tr("phoenix_guilds.guild_actions.officers_and_above_can_set_2"));
                 return;
             }
-            send(player, "§aGuild description updated.");
+            send(player, GuildsLang.tr("phoenix_guilds.guild_actions.guild_description_updated"));
             syncToGuild(guild, player.getServer(), mgr);
             GuildActions.broadcastAllGuildList(Objects.requireNonNull(player.getServer()), mgr);
         });
@@ -321,12 +337,13 @@ public class GuildActions {
     public static void handleToggleFF(ServerPlayer player, GuildManager mgr) {
         GuildActions.runWithGuild(player, mgr, (guild) -> {
             if (!mgr.toggleFriendlyFire(guild.getId(), player.getUUID())) {
-                send(player, "§cOnly the Guild owner can toggle friendly fire.");
+                send(player, GuildsLang.tr("phoenix_guilds.guild_actions.only_the_guild_owner_can"));
                 return;
             }
             boolean nowOn = guild.isFriendlyFire();
             guild.addLog(player.getName().getString() + " turned friendly fire " + (nowOn ? "ON" : "OFF") + ".");
-            send(player, "§aFriendly fire is now §f" + (nowOn ? "§aON" : "§cOFF") + "§a.");
+            send(player,
+                    GuildsLang.tr("phoenix_guilds.guild_actions.friendly_fire_is_now", (nowOn ? "§aON" : "§cOFF")));
             syncToGuild(guild, player.getServer(), mgr);
         });
     }
@@ -338,19 +355,19 @@ public class GuildActions {
                     player.getX(), player.getY(), player.getZ(),
                     player.getYRot(), player.getXRot());
             if (!ok) {
-                send(player, "§cOfficers and above can set the Guild home.");
+                send(player, GuildsLang.tr("phoenix_guilds.guild_actions.officers_and_above_can_set"));
                 return;
             }
             guild.addLog(player.getName().getString() + " set Guild home.");
-            send(player, "§aGuild home set to your current location.");
+            send(player, GuildsLang.tr("phoenix_guilds.guild_actions.guild_home_set_to_your"));
             syncToGuild(guild, player.getServer(), mgr);
         });
     }
 
     public static void handleGuildChat(ServerPlayer player, GuildManager mgr, String message) {
         GuildActions.runWithGuild(player, mgr, (guild) -> {
-            String formatted = "§2[Guild] §a" + player.getName().getString() + "§7: §f" + message;
-            Component msg = Component.literal(formatted);
+            Component msg = GuildsLang.tr("phoenix_guilds.guild_actions.guild_chat", player.getName().getString(),
+                    message);
             for (UUID uuid : guild.getMembers()) {
                 ServerPlayer member = Objects.requireNonNull(player.getServer()).getPlayerList().getPlayer(uuid);
                 if (member != null) member.sendSystemMessage(msg);
@@ -360,9 +377,8 @@ public class GuildActions {
 
     public static void handleAllyChat(ServerPlayer player, GuildManager mgr, String message) {
         GuildActions.runWithGuild(player, mgr, (guild) -> {
-            String formatted = "§3[Ally] §b" + player.getName().getString() + " §7[" + guild.getName() + "]§7: §f" +
-                    message;
-            Component msg = Component.literal(formatted);
+            Component msg = GuildsLang.tr("phoenix_guilds.guild_actions.ally_chat", player.getName().getString(),
+                    guild.getName(), message);
 
             for (UUID uuid : guild.getMembers()) {
                 ServerPlayer member = Objects.requireNonNull(player.getServer()).getPlayerList().getPlayer(uuid);
@@ -384,7 +400,7 @@ public class GuildActions {
     public static void handleAllyRequest(ServerPlayer player, GuildManager mgr, String targetName) {
         GuildActions.runWithGuild(player, mgr, (guild) -> {
             if (!guild.hasRank(player.getUUID(), GuildRank.OFFICER)) {
-                send(player, "§cOfficers and above can send alliance requests.");
+                send(player, GuildsLang.tr("phoenix_guilds.guild_actions.officers_and_above_can_send"));
                 return;
             }
             String result = mgr.sendAllyRequest(guild.getId(), targetName);
@@ -394,9 +410,9 @@ public class GuildActions {
                     mgr.getGuildByName(targetName).ifPresent(target -> {
                         ServerPlayer to = Objects.requireNonNull(player.getServer()).getPlayerList()
                                 .getPlayer(target.getOwner());
-                        if (to != null) to.sendSystemMessage(Component.literal("§6[Guild] §f" + guild.getName() +
-                                " §6has sent your guild an alliance request. Use §e/guilds ally accept " +
-                                guild.getName()));
+                        if (to != null)
+                            to.sendSystemMessage(GuildsLang.tr("phoenix_guilds.guild_actions.guild_has_sent_your_guild",
+                                    guild.getName(), guild.getName()));
                         syncToGuild(target, player.getServer(), mgr);
                     });
                     syncToGuild(guild, player.getServer(), mgr);
@@ -417,25 +433,27 @@ public class GuildActions {
     public static void handleAllyAccept(ServerPlayer player, GuildManager mgr, String senderName) {
         GuildActions.runWithGuild(player, mgr, (guild) -> {
             if (!guild.hasRank(player.getUUID(), GuildRank.OFFICER)) {
-                send(player, "§cOfficers and above can accept alliance requests.");
+                send(player, GuildsLang.tr("phoenix_guilds.guild_actions.officers_and_above_can_accept"));
                 return;
             }
             String result = mgr.acceptAllyRequest(guild.getId(), senderName);
             switch (result) {
                 case "accepted" -> {
-                    send(player, "§aAlliance formed with §f" + senderName + "§a!");
+                    send(player, GuildsLang.tr("phoenix_guilds.guild_actions.alliance_formed_with", senderName));
                     mgr.getGuildByName(senderName).ifPresent(s -> {
                         syncToGuild(s, player.getServer(), mgr);
                         ServerPlayer so = Objects.requireNonNull(player.getServer()).getPlayerList()
                                 .getPlayer(s.getOwner());
                         if (so != null) so.sendSystemMessage(
-                                Component.literal(
-                                        "§a[Guild] §f" + guild.getName() + " §aaccepted your alliance request!"));
+                                GuildsLang.tr("phoenix_guilds.guild_actions.guild_accepted_your_alliance_request",
+                                        guild.getName()));
                     });
                     syncToGuild(guild, player.getServer(), mgr);
                 }
-                case "no_request" -> send(player, "§cNo pending request from §f" + senderName + ".");
-                case "guild_not_found" -> send(player, "§cGuild '§f" + senderName + "§c' not found.");
+                case "no_request" -> send(player,
+                        GuildsLang.tr("phoenix_guilds.guild_actions.no_pending_request_from", senderName));
+                case "guild_not_found" -> send(player,
+                        GuildsLang.tr("phoenix_guilds.guild_actions.guild_not_found", senderName));
             }
         });
     }
@@ -443,18 +461,20 @@ public class GuildActions {
     public static void handleAllyDecline(ServerPlayer player, GuildManager mgr, String senderName) {
         GuildActions.runWithGuild(player, mgr, (guild) -> {
             if (!guild.hasRank(player.getUUID(), GuildRank.OFFICER)) {
-                send(player, "§cOfficers and above can decline alliance requests.");
+                send(player, GuildsLang.tr("phoenix_guilds.guild_actions.officers_and_above_can_decline"));
                 return;
             }
             String result = mgr.declineAllyRequest(guild.getId(), senderName);
             switch (result) {
                 case "declined" -> {
-                    send(player, "§7Declined request from §f" + senderName + "§7.");
+                    send(player, GuildsLang.tr("phoenix_guilds.guild_actions.declined_request_from", senderName));
                     mgr.getGuildByName(senderName).ifPresent(s -> syncToGuild(s, player.getServer(), mgr));
                     syncToGuild(guild, player.getServer(), mgr);
                 }
-                case "no_request" -> send(player, "§cNo pending request from §f" + senderName + ".");
-                case "guild_not_found" -> send(player, "§cGuild '§f" + senderName + "§c' not found.");
+                case "no_request" -> send(player,
+                        GuildsLang.tr("phoenix_guilds.guild_actions.no_pending_request_from", senderName));
+                case "guild_not_found" -> send(player,
+                        GuildsLang.tr("phoenix_guilds.guild_actions.guild_not_found", senderName));
             }
         });
     }
@@ -462,24 +482,27 @@ public class GuildActions {
     public static void handleAllyBreak(ServerPlayer player, GuildManager mgr, String targetName) {
         GuildActions.runWithGuild(player, mgr, (guild) -> {
             if (!guild.hasRank(player.getUUID(), GuildRank.OFFICER)) {
-                send(player, "§cOfficers and above can break alliances.");
+                send(player, GuildsLang.tr("phoenix_guilds.guild_actions.officers_and_above_can_break"));
                 return;
             }
             String result = mgr.breakAlliance(guild.getId(), targetName);
             switch (result) {
                 case "broken" -> {
-                    send(player, "§cBroke alliance with §f" + targetName + "§c.");
+                    send(player, GuildsLang.tr("phoenix_guilds.guild_actions.broke_alliance_with", targetName));
                     mgr.getGuildByName(targetName).ifPresent(t -> {
                         syncToGuild(t, player.getServer(), mgr);
                         ServerPlayer to = Objects.requireNonNull(player.getServer()).getPlayerList()
                                 .getPlayer(t.getOwner());
                         if (to != null) to.sendSystemMessage(
-                                Component.literal("§c[Guild] §f" + guild.getName() + " §cbroke the alliance."));
+                                GuildsLang.tr("phoenix_guilds.guild_actions.guild_broke_the_alliance",
+                                        guild.getName()));
                     });
                     syncToGuild(guild, player.getServer(), mgr);
                 }
-                case "not_ally" -> send(player, "§cNot allied with §f" + targetName + "§c.");
-                case "guild_not_found" -> send(player, "§cGuild '§f" + targetName + "§c' not found.");
+                case "not_ally" -> send(player,
+                        GuildsLang.tr("phoenix_guilds.guild_actions.not_allied_with", targetName));
+                case "guild_not_found" -> send(player,
+                        GuildsLang.tr("phoenix_guilds.guild_actions.guild_not_found", targetName));
             }
         });
     }
@@ -488,7 +511,7 @@ public class GuildActions {
         GuildActions.runWithGuild(player, mgr, (guild) -> {
             int sep = arg.indexOf(' ');
             if (sep < 0) {
-                send(player, "§cInvalid wiki data.");
+                send(player, GuildsLang.tr("phoenix_guilds.guild_actions.invalid_wiki_data"));
                 return;
             }
             String title = arg.substring(0, sep).trim();
@@ -496,13 +519,15 @@ public class GuildActions {
             String result = mgr.setWikiPage(guild.getId(), player.getUUID(), title, content);
             switch (result) {
                 case "ok" -> {
-                    send(player, "§aWiki page '§f" + title + "§a' saved.");
+                    send(player, GuildsLang.tr("phoenix_guilds.guild_actions.wiki_page_saved", title));
                     guild.addLog(player.getName().getString() + " updated wiki page \"" + title + "\".");
                     syncToGuild(guild, player.getServer(), mgr);
                 }
-                case "no_permission" -> send(player, "§cOfficers and above can edit the wiki.");
-                case "wiki_full" -> send(player, "§cWiki is full (20 pages max). Delete a page first.");
-                case "empty_title" -> send(player, "§cPage title cannot be empty.");
+                case "no_permission" -> send(player,
+                        GuildsLang.tr("phoenix_guilds.guild_actions.officers_and_above_can_edit_2"));
+                case "wiki_full" -> send(player, GuildsLang.tr("phoenix_guilds.guild_actions.wiki_is_full_20_pages"));
+                case "empty_title" -> send(player,
+                        GuildsLang.tr("phoenix_guilds.guild_actions.page_title_cannot_be_empty"));
             }
         });
     }
@@ -512,33 +537,33 @@ public class GuildActions {
         Optional<Guild> currentGuild = mgr.getGuildFor(player.getUUID());
         if (targetGuildId == null) {
             if (currentGuild.isEmpty()) {
-                send(player, "§cYou are not in a Guild.");
+                send(player, GuildsLang.tr("phoenix_guilds.guilds_commands.you_are_not_in_a"));
                 return;
             }
         } else if (mgr.getGuildById(targetGuildId).isEmpty()) {
-            send(player, "§cThat flag's guild no longer exists.");
+            send(player, GuildsLang.tr("phoenix_guilds.guild_flag_block.that_flag_s_guild_no"));
             return;
         } else if (currentGuild.isEmpty() || !currentGuild.get().getId().equals(targetGuildId)) {
-            send(player, "§cYou're not a member of this flag's guild.");
+            send(player, GuildsLang.tr("phoenix_guilds.guild_flag_block.you_re_not_a_member"));
             return;
         }
         Guild g = targetGuildId == null ? currentGuild.get() : mgr.getGuildById(targetGuildId).get();
         if (useDrawing) {
             if (pixelData == null || pixelData.length() != Guild.FLAG_PIXEL_DATA_LENGTH ||
                     !pixelData.matches("[0-9a-f]+")) {
-                send(player, "§cInvalid flag drawing data.");
+                send(player, GuildsLang.tr("phoenix_guilds.guild_actions.invalid_flag_drawing_data"));
                 return;
             }
         } else if (!isValidFlagIcon(iconId)) {
-            send(player, "§cThat item or block doesn't exist.");
+            send(player, GuildsLang.tr("phoenix_guilds.guild_actions.that_item_or_block_doesn"));
             return;
         }
         if (!mgr.setFlag(g.getId(), player.getUUID(), useDrawing, iconId, pixelData, width, height)) {
-            send(player, "§cOfficers and above can edit the Guild flag.");
+            send(player, GuildsLang.tr("phoenix_guilds.guild_actions.officers_and_above_can_edit"));
             return;
         }
         g.addLog(player.getName().getString() + " updated the Guild flag.");
-        send(player, "§aGuild flag updated.");
+        send(player, GuildsLang.tr("phoenix_guilds.guild_actions.guild_flag_updated"));
         syncToGuild(g, player.getServer(), mgr);
         GuildPacketUtils.pushFlagToOnlineMembers(g, player.getServer());
     }
@@ -548,12 +573,14 @@ public class GuildActions {
             String result = mgr.deleteWikiPage(guild.getId(), player.getUUID(), title);
             switch (result) {
                 case "ok" -> {
-                    send(player, "§7Deleted wiki page '§f" + title + "§7'.");
+                    send(player, GuildsLang.tr("phoenix_guilds.guild_actions.deleted_wiki_page", title));
                     guild.addLog(player.getName().getString() + " deleted wiki page \"" + title + "\".");
                     syncToGuild(guild, player.getServer(), mgr);
                 }
-                case "no_permission" -> send(player, "§cOfficers and above can delete wiki pages.");
-                case "not_found" -> send(player, "§cNo wiki page named '§f" + title + "§c'.");
+                case "no_permission" -> send(player,
+                        GuildsLang.tr("phoenix_guilds.guild_actions.officers_and_above_can_delete"));
+                case "not_found" -> send(player,
+                        GuildsLang.tr("phoenix_guilds.guild_actions.no_wiki_page_named", title));
             }
         });
     }
@@ -561,6 +588,6 @@ public class GuildActions {
     public static void runWithGuild(ServerPlayer player, GuildManager mgr, GuildContextAction action) {
         mgr.getGuildFor(player.getUUID()).ifPresentOrElse(
                 action::execute,
-                () -> send(player, "§cYou are not in a Guild."));
+                () -> send(player, GuildsLang.tr("phoenix_guilds.guilds_commands.you_are_not_in_a")));
     }
 }

@@ -5,7 +5,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -13,7 +12,9 @@ import net.minecraft.world.item.Items;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.phoenixvine.guilds.client.GuildsText;
 import net.phoenixvine.guilds.client.render.GuildFlagIconManager;
+import net.phoenixvine.guilds.utils.GuildsLang;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +46,7 @@ public class GuildFlagIconPickerScreen extends Screen {
     private int gridBottom;
 
     public GuildFlagIconPickerScreen(Screen parent, String current, Consumer<String> onPick) {
-        super(Component.literal("Choose Item/Block"));
+        super(GuildsLang.tr("phoenix_guilds.guild_flag_editor_screen.choose_item_block"));
         this.parent = parent;
         this.current = current;
         this.onPick = onPick;
@@ -72,15 +73,17 @@ public class GuildFlagIconPickerScreen extends Screen {
         gridBottom = height - 34;
 
         String previousSearch = searchBox != null ? searchBox.getValue() : "";
-        searchBox = new EditBox(font, width / 2 - 100, 22, 200, 16, Component.literal("Search"));
+        searchBox = new EditBox(font, width / 2 - 100, 22, 200, 16,
+                GuildsLang.tr("phoenix_guilds.guild_flag_icon_picker_screen.search"));
         searchBox.setMaxLength(48);
         searchBox.setValue(previousSearch);
-        searchBox.setHint(Component.literal("Search items/blocks…"));
+        searchBox.setHint(GuildsLang.tr("phoenix_guilds.guild_flag_icon_picker_screen.search_items_blocks"));
         addWidget(searchBox);
         setInitialFocus(searchBox);
 
-        addRenderableWidget(Button.builder(Component.literal("Close"), b -> onClose())
-                .bounds(width / 2 - 40, height - 26, 80, 18).build());
+        addRenderableWidget(
+                Button.builder(GuildsLang.tr("phoenix_guilds.guild_flag_icon_picker_screen.close"), b -> onClose())
+                        .bounds(width / 2 - 40, height - 26, 80, 18).build());
     }
 
     private List<ItemStack> filtered() {
@@ -98,7 +101,8 @@ public class GuildFlagIconPickerScreen extends Screen {
         g.fill(0, 0, width, height, C_BG);
         g.fill(0, 0, width, 1, C_BORDER);
         g.fill(0, height - 1, width, height, C_BORDER);
-        g.drawCenteredString(font, "Choose Item/Block", width / 2, 8, C_ACCENT);
+        g.drawCenteredString(font, GuildsText.str("phoenix_guilds.guild_flag_editor_screen.choose_item_block"),
+                width / 2, 8, C_ACCENT);
 
         List<ItemStack> items = filtered();
         int cols = COLS;
