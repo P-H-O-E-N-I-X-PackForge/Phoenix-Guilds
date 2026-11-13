@@ -1,5 +1,7 @@
 package net.phoenixvine.guilds.command;
 
+import net.phoenixvine.guilds.utils.GuildsLang;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
@@ -223,58 +225,64 @@ public class GuildsCommands {
     private static void cmdList(ServerPlayer player, GuildManager mgr) {
         var all = mgr.getAllGuilds();
         if (all.isEmpty()) {
-            send(player, "§7No Guilds exist yet.");
+            send(player, GuildsLang.tr("phoenix_guilds.guilds_commands.no_guilds_exist_yet"));
             return;
         }
-        StringBuilder sb = new StringBuilder("§6[Guilds]");
+        MutableComponent out = GuildsLang.tr("phoenix_guilds.guilds_commands.list_header");
         for (Guild g : all)
-            sb.append("\n  §f").append(g.getName()).append(" §7(").append(g.getMembers().size()).append(" members)");
-        player.sendSystemMessage(Component.literal(sb.toString()));
+            out.append(GuildsLang.tr("phoenix_guilds.guilds_commands.list_entry", g.getName(),
+                    g.getMembers().size()));
+        player.sendSystemMessage(out);
     }
 
     private static void cmdLog(ServerPlayer player, GuildManager mgr) {
         Optional<Guild> opt = mgr.getGuildFor(player.getUUID());
         if (opt.isEmpty()) {
-            send(player, "§cYou are not in a Guild.");
+            send(player, GuildsLang.tr("phoenix_guilds.guilds_commands.you_are_not_in_a"));
             return;
         }
         Guild g = opt.get();
         if (g.getLog().isEmpty()) {
-            send(player, "§7No events logged yet.");
+            send(player, GuildsLang.tr("phoenix_guilds.guilds_commands.no_events_logged_yet"));
             return;
         }
-        StringBuilder sb = new StringBuilder("§6[Guild Log] §f" + g.getName());
+        MutableComponent out = GuildsLang.tr("phoenix_guilds.guilds_commands.log_header", g.getName());
         for (Guild.LogEntry e : g.getLog()) {
             String time = new java.text.SimpleDateFormat("MM/dd HH:mm").format(new java.util.Date(e.timestamp()));
-            sb.append("\n§7").append(time).append(" §f").append(e.message());
+            out.append(GuildsLang.tr("phoenix_guilds.guilds_commands.log_entry", time, e.message()));
         }
-        player.sendSystemMessage(Component.literal(sb.toString()));
+        player.sendSystemMessage(out);
     }
 
     private static void cmdInfo(ServerPlayer player, GuildManager mgr) {
         Optional<Guild> opt = mgr.getGuildFor(player.getUUID());
         if (opt.isEmpty()) {
-            send(player, "§cYou are not in a Guild.");
+            send(player, GuildsLang.tr("phoenix_guilds.guilds_commands.you_are_not_in_a"));
             return;
         }
         Guild g = opt.get();
-        StringBuilder sb = new StringBuilder("§6[Guild] §f" + g.getName());
-        if (!g.getDescription().isBlank()) sb.append("\n§7").append(g.getDescription());
-        if (!g.getMotd().isBlank()) sb.append("\n§6MOTD: §f").append(g.getMotd());
-        sb.append("\n§7FF: ").append(g.isFriendlyFire() ? "§aON" : "§cOFF");
-        sb.append("  Home: ").append(g.isHomeSet() ? "§aSet" : "§cNot set");
-        sb.append("\n§7Members:");
+        MutableComponent out = GuildsLang.tr("phoenix_guilds.guilds_commands.info_header", g.getName());
+        if (!g.getDescription().isBlank())
+            out.append(GuildsLang.tr("phoenix_guilds.guilds_commands.info_description", g.getDescription()));
+        if (!g.getMotd().isBlank()) out.append(GuildsLang.tr("phoenix_guilds.guilds_commands.info_motd", g.getMotd()));
+        out.append(GuildsLang.tr("phoenix_guilds.guilds_commands.info_friendly_fire",
+                g.isFriendlyFire() ? GuildsLang.tr("phoenix_guilds.guilds_commands.on") : GuildsLang.tr("phoenix_guilds.guilds_commands.off")));
+        out.append(GuildsLang.tr("phoenix_guilds.guilds_commands.info_home",
+                g.isHomeSet() ? GuildsLang.tr("phoenix_guilds.guilds_commands.home_set") :
+                        GuildsLang.tr("phoenix_guilds.guilds_commands.home_not_set")));
+        out.append(GuildsLang.tr("phoenix_guilds.guilds_commands.info_members"));
         for (UUID m : g.getMembers()) {
             ServerPlayer on = player.getServer().getPlayerList().getPlayer(m);
             String nm = on != null ? on.getName().getString() : m.toString().substring(0, 8) + "…";
-            sb.append("\n  ").append(g.getRank(m).display()).append(" §f").append(nm)
-                    .append(on != null ? " §a(online)" : " §8(offline)");
+            out.append(GuildsLang.tr("phoenix_guilds.guilds_commands.info_member", g.getRank(m).display(), nm,
+                    on != null ? GuildsLang.tr("phoenix_guilds.guilds_commands.member_online") :
+                            GuildsLang.tr("phoenix_guilds.guilds_commands.member_offline")));
         }
         if (!g.getAllies().isEmpty()) {
-            sb.append("\n§7Allies:");
+            out.append(GuildsLang.tr("phoenix_guilds.guilds_commands.info_allies"));
             for (UUID aid : g.getAllies())
-                mgr.getGuildById(aid).ifPresent(a -> sb.append("\n  §b⚑ §f").append(a.getName()));
+                mgr.getGuildById(aid).ifPresent(a -> out.append(GuildsLang.tr("phoenix_guilds.guilds_commands.info_ally", a.getName())));
         }
-        player.sendSystemMessage(Component.literal(sb.toString()));
+        player.sendSystemMessage(out);
     }
 }

@@ -1,5 +1,7 @@
 package net.phoenixvine.guilds.client.screen;
 
+import net.phoenixvine.guilds.client.GuildsText;
+import net.phoenixvine.guilds.utils.GuildsLang;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractSliderButton;
@@ -88,7 +90,7 @@ public class GuildFlagEditorScreen extends Screen {
     }
 
     public GuildFlagEditorScreen(Screen parent, @Nullable UUID targetGuildId) {
-        super(Component.literal("Guild Flag Editor"));
+        super(GuildsLang.tr("phoenix_guilds.guild_flag_editor_screen.guild_flag_editor"));
         this.parent = parent;
         this.targetGuildId = targetGuildId;
         this.mode = ClientGuildCache.flagUseDrawing ? Mode.DRAWING : Mode.ICON;
@@ -170,7 +172,7 @@ public class GuildFlagEditorScreen extends Screen {
         }
 
         int ry = contentTop;
-        addRenderableWidget(Button.builder(Component.literal(mode == Mode.ICON ? "Mode: Item/Block" : "Mode: Draw"),
+        addRenderableWidget(Button.builder(Component.literal(mode == Mode.ICON ? GuildsText.str("phoenix_guilds.guild_flag_editor.mode_item_block") : GuildsText.str("phoenix_guilds.guild_flag_editor.mode_draw")),
                 b -> {
                     mode = mode == Mode.ICON ? Mode.DRAWING : Mode.ICON;
                     rebuildWidgets();
@@ -178,7 +180,7 @@ public class GuildFlagEditorScreen extends Screen {
         ry += ROW_H + ROW_GAP;
 
         addRenderableWidget(Button.builder(
-                Component.literal("Size: " + flagWidth + "x" + flagHeight),
+                GuildsLang.tr("phoenix_guilds.guild_flag_editor_screen.size_x", flagWidth, flagHeight),
                 b -> {
                     sizeIndex = (sizeIndex + 1) % FLAG_SIZES.length;
                     flagWidth = FLAG_SIZES[sizeIndex];
@@ -192,10 +194,10 @@ public class GuildFlagEditorScreen extends Screen {
         ry += TITLE_H + ROW_GAP;
 
         if (mode == Mode.DRAWING) {
-            addRenderableWidget(Button.builder(Component.literal("Clear"),
+            addRenderableWidget(Button.builder(GuildsLang.tr("phoenix_guilds.guild_flag_editor_screen.clear"),
                     b -> Arrays.fill(pixelColors, 0xFFFFFF)).bounds(rightColX, ry, RIGHT_COL_W, ROW_H).build());
         } else {
-            addRenderableWidget(Button.builder(Component.literal("Choose Item/Block"),
+            addRenderableWidget(Button.builder(GuildsLang.tr("phoenix_guilds.guild_flag_editor_screen.choose_item_block"),
                     b -> Minecraft.getInstance().setScreen(new GuildFlagIconPickerScreen(this, iconId, picked -> {
                         iconId = picked;
                     })))
@@ -213,7 +215,7 @@ public class GuildFlagEditorScreen extends Screen {
                     new ChannelSlider(rightColX + 2 * (sliderW + sliderGap), ry, sliderW, ROW_H, 'B', 0));
             ry += ROW_H + ROW_GAP;
 
-            hexBox = new EditBox(font, rightColX, ry, RIGHT_COL_W, ROW_H, Component.literal("Hex"));
+            hexBox = new EditBox(font, rightColX, ry, RIGHT_COL_W, ROW_H, GuildsLang.tr("phoenix_guilds.guild_flag_editor_screen.hex"));
             hexBox.setMaxLength(6);
             hexBox.setValue(GuildFlagPixelArt.toHex6(selectedColor));
             hexBox.setResponder(s -> {
@@ -233,9 +235,9 @@ public class GuildFlagEditorScreen extends Screen {
         }
 
         int halfW = (RIGHT_COL_W - 6) / 2;
-        addRenderableWidget(Button.builder(Component.literal("Save"), b -> save())
+        addRenderableWidget(Button.builder(GuildsLang.tr("phoenix_guilds.guild_flag_editor_screen.save"), b -> save())
                 .bounds(rightColX, ry, halfW, ROW_H).build());
-        addRenderableWidget(Button.builder(Component.literal("Cancel"), b -> onClose())
+        addRenderableWidget(Button.builder(GuildsLang.tr("phoenix_guilds.guild_flag_editor_screen.cancel"), b -> onClose())
                 .bounds(rightColX + halfW + 6, ry, halfW, ROW_H).build());
     }
 
@@ -247,7 +249,7 @@ public class GuildFlagEditorScreen extends Screen {
         g.fill(px, py + panelH - 1, px + panelW, py + panelH, C_BORDER);
         g.fill(px, py, px + 1, py + panelH, C_BORDER);
         g.fill(px + panelW - 1, py, px + panelW, py + panelH, C_BORDER);
-        g.drawCenteredString(font, "Guild Flag Editor", px + panelW / 2, py + PAD, C_ACCENT);
+        g.drawCenteredString(font, GuildsText.str("phoenix_guilds.guild_flag_editor_screen.guild_flag_editor"), px + panelW / 2, py + PAD, C_ACCENT);
 
         if (mode == Mode.DRAWING) {
             renderDrawingGrid(g);

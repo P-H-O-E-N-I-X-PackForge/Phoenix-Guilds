@@ -1,5 +1,6 @@
 package net.phoenixvine.guilds.client;
 
+import net.phoenixvine.guilds.utils.GuildsLang;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.network.chat.Component;
@@ -40,7 +41,7 @@ public class PhoenixGuildsClient {
 
         SuiteHudBar.register(PhoenixGuilds.MOD_ID, SuiteHudBar.PRIORITY_GUILDS,
                 ResourceLocation.fromNamespaceAndPath(PhoenixGuilds.MOD_ID, "textures/gui/suite_bar_icon.png"),
-                Component.literal("§fOpen Guild Menu"),
+                GuildsLang.tr("phoenix_guilds.phoenix_guilds_client.open_guild_menu"),
                 () -> Minecraft.getInstance().setScreen(
                         new GuildScreen(Minecraft.getInstance().screen)));
     }

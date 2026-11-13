@@ -1,5 +1,6 @@
 package net.phoenixvine.guilds.content.flag;
 
+import net.phoenixvine.guilds.utils.GuildsLang;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -133,7 +134,7 @@ public class GuildFlagBlock extends Block implements EntityBlock {
         if (stack.is(this.asItem())) {
             if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
                 serverPlayer.displayClientMessage(
-                        Component.literal("§cYou cannot put a flag on a flag! Flag-ception averted."), true);
+                        GuildsLang.tr("phoenix_guilds.guild_flag_block.you_cannot_put_a_flag"), true);
             }
             return ItemInteractionResult.SUCCESS;
         }
@@ -161,7 +162,7 @@ public class GuildFlagBlock extends Block implements EntityBlock {
             if (GuildAPI.isOfficerOrAbove(player.getUUID())) {
                 net.phoenixvine.guilds.client.ClientAccess.openFlagEditor(entity.getGuildId());
             } else {
-                player.displayClientMessage(Component.literal("§cOnly guild officers can edit the flag."), true);
+                player.displayClientMessage(GuildsLang.tr("phoenix_guilds.guild_flag_block.only_guild_officers_can_edit"), true);
             }
         }
         return InteractionResult.SUCCESS;
@@ -171,12 +172,12 @@ public class GuildFlagBlock extends Block implements EntityBlock {
         GuildManager mgr = GuildManager.get(Objects.requireNonNull(player.getServer()).overworld());
         Optional<Guild> guildOpt = mgr.getGuildById(guildId);
         if (guildOpt.isEmpty()) {
-            player.displayClientMessage(Component.literal("§cThat flag's guild no longer exists."), true);
+            player.displayClientMessage(GuildsLang.tr("phoenix_guilds.guild_flag_block.that_flag_s_guild_no"), true);
             return;
         }
         Guild guild = guildOpt.get();
         if (!guild.isMember(player.getUUID())) {
-            player.displayClientMessage(Component.literal("§cYou're not a member of this flag's guild."), true);
+            player.displayClientMessage(GuildsLang.tr("phoenix_guilds.guild_flag_block.you_re_not_a_member"), true);
             return;
         }
 

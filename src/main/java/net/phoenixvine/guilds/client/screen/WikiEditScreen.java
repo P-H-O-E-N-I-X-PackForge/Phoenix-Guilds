@@ -1,5 +1,7 @@
 package net.phoenixvine.guilds.client.screen;
 
+import net.phoenixvine.guilds.client.GuildsText;
+import net.phoenixvine.guilds.utils.GuildsLang;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -53,7 +55,7 @@ public class WikiEditScreen extends Screen {
     private ContentArea contentArea;
 
     public WikiEditScreen(Screen parent, String existingTitle, String existingContent) {
-        super(Component.literal(existingTitle.isEmpty() ? "New Wiki Page" : "Edit: " + existingTitle));
+        super(Component.literal(existingTitle.isEmpty() ? GuildsText.str("phoenix_guilds.wiki_edit.new_wiki_page") : GuildsText.str("phoenix_guilds.wiki_edit.edit", existingTitle)));
         this.parent = parent;
         this.initialTitle = existingTitle;
         this.initialContent = existingContent;
@@ -68,7 +70,7 @@ public class WikiEditScreen extends Screen {
 
         titleBox = new EditBox(font, px + 8, py + 24, W - 16, 14, Component.empty());
         titleBox.setMaxLength(MAX_TITLE);
-        titleBox.setHint(Component.literal("Page title..."));
+        titleBox.setHint(GuildsLang.tr("phoenix_guilds.wiki_edit_screen.page_title"));
         titleBox.setValue(initialTitle);
         addRenderableWidget(titleBox);
 
@@ -85,7 +87,7 @@ public class WikiEditScreen extends Screen {
         g.fill(px, py, px + W, py + H, C_PANEL);
         g.fill(px, py, px + W, py + 1, C_ACCENT);
         g.drawCenteredString(font, getTitle(), px + W / 2, py + 7, C_ACCENT);
-        g.drawString(font, "Title:", px + 8, py + 15, C_DIM, false);
+        g.drawString(font, GuildsText.str("phoenix_guilds.wiki_edit.title"), px + 8, py + 15, C_DIM, false);
 
         super.render(g, mx, my, pt);
 
@@ -98,7 +100,7 @@ public class WikiEditScreen extends Screen {
 
     private void renderColorPicker(GuiGraphics g, int mx, int my) {
         int pickerY = py + H - 40;
-        g.drawString(font, "Colors:", px + 8, pickerY + 2, C_DIM, false);
+        g.drawString(font, GuildsText.str("phoenix_guilds.wiki_edit.colors"), px + 8, pickerY + 2, C_DIM, false);
         int boxX = px + 8 + font.width("Colors:") + 4;
         int sz = 11;
         int gap = 2;
@@ -221,7 +223,7 @@ public class WikiEditScreen extends Screen {
             lineCache.clear();
             if (full.isEmpty()) {
                 lineCache.add(new LinePos(0, 0, ""));
-                g.drawString(WikiEditScreen.this.font, "Write your wiki page here... (Shift+Enter for new line)", tx,
+                g.drawString(WikiEditScreen.this.font, GuildsText.str("phoenix_guilds.wiki_edit.write_your_wiki_page_here"), tx,
                         ty, 0xFF2A2A4A, false);
             } else {
                 WikiEditScreen.this.font.getSplitter().splitLines(full, width - 10, Style.EMPTY, false,

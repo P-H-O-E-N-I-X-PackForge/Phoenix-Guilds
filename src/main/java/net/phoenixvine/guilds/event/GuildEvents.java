@@ -1,5 +1,6 @@
 package net.phoenixvine.guilds.event;
 
+import net.phoenixvine.guilds.utils.GuildsLang;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
@@ -25,7 +26,7 @@ public class GuildEvents {
 
         mgr.getGuildFor(player.getUUID()).ifPresent(g -> {
             if (!g.getMotd().isBlank())
-                player.sendSystemMessage(Component.literal("§6[Guild MOTD] §f" + g.getMotd()));
+                player.sendSystemMessage(GuildsLang.tr("phoenix_guilds.guild_events.guild_motd", g.getMotd()));
             g.addLog(player.getName().getString() + " logged in.");
             mgr.setDirty();
         });
