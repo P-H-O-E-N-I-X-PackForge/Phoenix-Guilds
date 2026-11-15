@@ -12,10 +12,6 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * GregTech 8.x: the registry is fetched per server with {@code get(ServerLevel)}, entries come back as a name map,
- * and deletion is {@code forceDeleteEntry}. Compiled against 8.x in the {@code gtm8} source set.
- */
 public final class VirtualRegistryMigrator8 implements VirtualRegistryMigrator {
 
     private static final EntryTypes<?>[] KNOWN_TYPES = {

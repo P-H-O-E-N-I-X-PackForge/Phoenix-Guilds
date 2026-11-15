@@ -15,10 +15,6 @@ public final class GuildsGTCEuIntegration {
         return ModList.get().isLoaded(GTCEu.MOD_ID);
     }
 
-    /**
-     * Whether this GregTech has the reworked 8.x development API. Decided by a class only that API has, not by the
-     * version number - the 8.0.0 release still has the classic API.
-     */
     public static boolean usesNewApi() {
         try {
             Class.forName("com.gregtechceu.gtceu.api.multiblock.MultiblockWorldSavedData", false,

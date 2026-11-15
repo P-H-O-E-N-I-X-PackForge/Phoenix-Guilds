@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
 
-/** GregTech 7.x: one global registry with {@code getInstance()}, entries listed by name, {@code deleteEntry}. */
 public final class VirtualRegistryMigrator7 implements VirtualRegistryMigrator {
 
     private static final EntryTypes<?>[] KNOWN_TYPES = {
